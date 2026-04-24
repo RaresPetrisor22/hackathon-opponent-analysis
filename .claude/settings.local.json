@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(mkdir -p \"C:/Users/Petrisor Rares/desktop/opponent_analysis/.claude\")",
-      "Bash(mkdir -p \"C:/Users/Petrisor Rares/desktop/opponent_analysis/frontend/app/dossier/[teamId]\")"
+      "Bash(mkdir -p \"C:/Users/Petrisor Rares/desktop/opponent_analysis/frontend/app/dossier/[teamId]\")",
+      "Bash(mv .env.example .env)",
+      "Bash(git rm *)",
+      "Bash(uv sync *)"
     ]
   }
 }

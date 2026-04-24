@@ -8,6 +8,7 @@ class Settings(BaseSettings):
 
     api_football_key: str = ""
     openai_api_key: str = ""
+    openai_model: str = "gpt-4o"
     database_url: str = "sqlite+aiosqlite:///./data/app.db"
 
     api_football_base_url: str = "https://v3.football.api-sports.io"

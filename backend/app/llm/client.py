@@ -1,94 +1,88 @@
 from __future__ import annotations
 
 import asyncio
-import json
-from typing import Any, TypeVar, overload
+import logging
+import time
+from typing import TypeVar
 
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
-from langchain.schema import HumanMessage, SystemMessage
 from pydantic import BaseModel
 
 from app.config import settings
 
+logger = logging.getLogger(__name__)
+
 T = TypeVar("T", bound=BaseModel)
 
 _llm: ChatOpenAI | None = None
+
+_RETRY_DELAYS = [2, 8, 30]  # seconds; exponential-ish, capped at 30
 
 
 def _get_llm() -> ChatOpenAI:
     global _llm
     if _llm is None:
         _llm = ChatOpenAI(
-            model="gpt-4o",
+            model=settings.openai_model,
             api_key=settings.openai_api_key,
             temperature=0.3,
         )
     return _llm
 
 
-@overload
-async def call_llm(
-    system: str,
-    user: str,
-    response_schema: type[T],
-) -> T: ...
+async def invoke_structured(system: str, user: str, schema: type[T]) -> T:
+    """Send a chat completion and parse the response into a Pydantic model.
 
+    Uses model.with_structured_output(schema) so the model is constrained to
+    return JSON matching the schema — no manual json.loads needed.
 
-@overload
-async def call_llm(
-    system: str,
-    user: str,
-    response_schema: None = None,
-) -> str: ...
-
-
-async def call_llm(
-    system: str,
-    user: str,
-    response_schema: type[T] | None = None,
-) -> T | str:
-    """Send a chat completion request through LangChain/OpenAI.
-
-    If response_schema is provided, the model is instructed to return JSON
-    conforming to the schema and the result is parsed into that Pydantic model.
-
-    Retries up to 3 times on rate-limit errors with exponential backoff.
+    Retries up to 3 times on rate-limit errors with delays: 2s, 8s, 30s.
 
     Args:
-        system: System prompt string (from prompts.py).
-        user: User message string.
-        response_schema: Optional Pydantic model class to parse the response into.
+        system: System message content (plain string from prompts.py or inline).
+        user: Human message content with all variables already interpolated.
+        schema: Pydantic model class the response should be parsed into.
 
     Returns:
-        Parsed Pydantic model if response_schema given, else raw string.
+        Validated instance of schema.
     """
-    llm = _get_llm()
-    messages = [SystemMessage(content=system), HumanMessage(content=user)]
+    prompt = ChatPromptTemplate.from_messages(
+        [("system", system), ("human", user)]
+    )
+    chain = prompt | _get_llm().with_structured_output(schema)
 
-    if response_schema is not None:
-        schema_hint = json.dumps(response_schema.model_json_schema(), indent=2)
-        messages[0] = SystemMessage(
-            content=system
-            + f"\n\nRespond with valid JSON matching this schema:\n{schema_hint}"
-        )
+    # Estimate token count cheaply: 1 token ≈ 4 chars
+    token_estimate = (len(system) + len(user)) // 4
 
-    for attempt in range(3):
+    for attempt, delay in enumerate([0, *_RETRY_DELAYS]):
+        if delay:
+            await asyncio.sleep(delay)
+        t0 = time.monotonic()
         try:
-            response = await llm.ainvoke(messages)
-            text: str = response.content  # type: ignore[assignment]
-            if response_schema is not None:
-                raw = json.loads(text)
-                return response_schema.model_validate(raw)
-            return text
+            result = await chain.ainvoke({"system": system, "user": user})
+            elapsed = time.monotonic() - t0
+            logger.info(
+                "LLM call succeeded model=%s schema=%s tokens_est=%d elapsed=%.2fs",
+                settings.openai_model,
+                schema.__name__,
+                token_estimate,
+                elapsed,
+            )
+            return result  # type: ignore[return-value]
         except Exception as exc:
-            if "rate" in str(exc).lower() and attempt < 2:
-                await asyncio.sleep(2 ** attempt * 5)
-                continue
-            raise
+            elapsed = time.monotonic() - t0
+            is_rate_limit = "rate" in str(exc).lower() or "429" in str(exc)
+            logger.warning(
+                "LLM call failed attempt=%d/%d model=%s schema=%s elapsed=%.2fs error=%s",
+                attempt + 1,
+                len(_RETRY_DELAYS) + 1,
+                settings.openai_model,
+                schema.__name__,
+                elapsed,
+                exc,
+            )
+            if not is_rate_limit or attempt == len(_RETRY_DELAYS):
+                raise
 
-    raise RuntimeError("LLM call failed after retries")
-
-
-async def call_llm_raw(system: str, user: str) -> str:
-    """Convenience wrapper returning plain string."""
-    return await call_llm(system, user, response_schema=None)
+    raise RuntimeError("invoke_structured: exceeded retries")
