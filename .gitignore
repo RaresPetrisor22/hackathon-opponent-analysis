@@ -1,5 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.env
+*.db
+*.sqlite
+dist/
+build/
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+.next/
+.env.local
+.env.production
+out/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Raw ingestion cache (keep .gitkeep files)
+backend/app/ingestion/raw/**/*.json
+!backend/app/ingestion/raw/**/.gitkeep
+
+# Data
+backend/data/*.db
 *.csv
 *.mp4
-*.json
 /data
-Documentatie API.yml
+
+# OS
+.DS_Store
+Thumbs.db
