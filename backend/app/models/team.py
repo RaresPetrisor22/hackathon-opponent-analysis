@@ -16,7 +16,6 @@ class Team(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     api_football_id: Mapped[int] = mapped_column(unique=True, index=True)
-    wyscout_id: Mapped[int | None] = mapped_column(nullable=True)
 
     name: Mapped[str] = mapped_column(String(120))
     short_name: Mapped[str | None] = mapped_column(String(30), nullable=True)

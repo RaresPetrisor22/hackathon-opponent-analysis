@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Opponent Dossier is a pre-match scouting tool for FC Universitatea Cluj (Romanian SuperLiga). The coaching staff selects the next opponent and the system generates a seven-section report covering form, tactical identity, archetype-based matchup intelligence, player cards, game-state patterns, referee context, and an LLM-written gameplan. Data comes from API-Football v3 (cached to disk) and Wyscout JSON exports. The backend is FastAPI + SQLite; the frontend is Next.js 14.
+Opponent Dossier is a pre-match scouting tool for FC Universitatea Cluj (Romanian SuperLiga). The coaching staff selects the next opponent and the system generates a seven-section report covering form, tactical identity, archetype-based matchup intelligence, player cards, game-state patterns, referee context, and an LLM-written gameplan. Data comes exclusively from API-Football v3 (cached to disk). The backend is FastAPI + SQLite; the frontend is Next.js 14.
 
 ## Coding Conventions
 
@@ -14,8 +14,8 @@ Opponent Dossier is a pre-match scouting tool for FC Universitatea Cluj (Romania
 - All API input/output uses Pydantic v2 models defined in `backend/app/schemas/`.
 - SQLAlchemy models use the 2.0 `Mapped[]` / `mapped_column()` style — no legacy `Column()`.
 - All ingestion methods must cache the raw JSON response to disk before parsing. Cache path: `backend/app/ingestion/raw/{source}/{endpoint}/{params_hash}.json`.
-- All LLM calls go through `backend/app/llm/client.py` — never call the OpenAI/Anthropic SDK directly from analysis modules or routes.
-- All prompt strings live in `backend/app/llm/prompts.py` as module-level string constants — never inline prompt strings elsewhere.
+- All LLM calls go through `backend/app/llm/client.py` — never call the OpenAI SDK directly from analysis modules or routes.
+- All prompt templates live in `backend/app/llm/prompts.py` as `ChatPromptTemplate` constants — never inline prompt strings elsewhere.
 - Use `async`/`await` throughout the backend (httpx, SQLAlchemy async session, FastAPI async routes).
 
 ### TypeScript (frontend)

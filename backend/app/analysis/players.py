@@ -12,7 +12,7 @@ async def compute_player_cards(
 
     For threats: rank players by goals + assists over the season, surface top 3.
     For vulnerabilities: identify positions / players with high cards/fouls
-    conceded and low duel-success rates (from Wyscout data where available).
+    conceded and low duel-success rates from API-Football fixture player stats.
 
     Returns at most 5 threat cards and 3 vulnerability cards.
 

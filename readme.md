@@ -1,6 +1,6 @@
 # Opponent Dossier — FC Universitatea Cluj
 
-Pre-match scouting tool for the coaching staff. Select the next opponent and receive a structured dossier with seven analytical sections generated from API-Football data and Wyscout player exports.
+Pre-match scouting tool for the coaching staff. Select the next opponent and receive a structured dossier with seven analytical sections generated from API-Football data.
 
 ## Quickstart
 
@@ -30,7 +30,7 @@ Open http://localhost:3000.
 opponent_analysis/
 ├── backend/          FastAPI + SQLAlchemy (SQLite)
 │   ├── app/
-│   │   ├── ingestion/    Pull & cache API-Football + Wyscout JSON
+│   │   ├── ingestion/    Pull & cache API-Football JSON
 │   │   ├── analysis/     Deterministic stat modules (one per section)
 │   │   ├── llm/          LangChain/OpenAI orchestration & prompts
 │   │   ├── models/       SQLAlchemy 2.0 ORM models
@@ -53,7 +53,6 @@ opponent_analysis/
 ## Data Sources
 
 - **API-Football v3** (`https://v3.football.api-sports.io`) — fixtures, events, team/player stats, standings, H2H, referee info. 100 req/day on free tier; all responses cached to disk.
-- **Wyscout JSON exports** — per-match per-player aggregated stats (~115 metrics). Stored in `backend/app/ingestion/raw/wyscout/`.
 
 ## One-time Data Setup
 

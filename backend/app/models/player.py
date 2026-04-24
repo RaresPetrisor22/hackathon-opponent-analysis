@@ -16,7 +16,6 @@ class Player(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     api_football_id: Mapped[int | None] = mapped_column(nullable=True, index=True)
-    wyscout_id: Mapped[int | None] = mapped_column(nullable=True)
 
     team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"), index=True)
     team: Mapped[Team] = relationship("Team", back_populates="players")
