@@ -4,11 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Opponent Dossier is a pre-match scouting tool for FC Universitatea Cluj (Romanian SuperLiga). The coaching staff selects the next opponent and the system generates a seven-section report covering form, tactical identity, archetype-based matchup intelligence, player cards, game-state patterns, referee context, and an LLM-written gameplan. Data comes exclusively from API-Football v3 (cached to disk). The backend is FastAPI + SQLite; the frontend is Next.js 14.
+Opponent Dossier is a pre-match scouting tool for FC Universitatea Cluj (Romanian SuperLiga). The coaching staff selects the next opponent and the system generates a seven-section report covering form, tactical identity, archetype-based matchup intelligence, player cards, game-state patterns, referee context, and an LLM-written gameplan. Keep in mind the matchup intelligence feature is the core feature. It should pe prioritized and highlighted accordingly Data comes exclusively from API-Football v3 (cached to disk). The backend is FastAPI + SQLite; the frontend is Next.js 14.
 
 ## Coding Conventions
 
 ### Python (backend)
+
 - Use `pathlib.Path` everywhere — never `os.path`.
 - Type-hint every function signature, including return types. Use `from __future__ import annotations` at the top of files where needed.
 - All API input/output uses Pydantic v2 models defined in `backend/app/schemas/`.
@@ -19,6 +20,7 @@ Opponent Dossier is a pre-match scouting tool for FC Universitatea Cluj (Romania
 - Use `async`/`await` throughout the backend (httpx, SQLAlchemy async session, FastAPI async routes).
 
 ### TypeScript (frontend)
+
 - Use shadcn/ui for every primitive: Button, Card, Select, Badge, Skeleton, etc. Do not build custom button/input/card components.
 - All types mirror the backend Pydantic schemas and live in `frontend/lib/types.ts`.
 - All backend fetch calls go through `frontend/lib/api.ts`.

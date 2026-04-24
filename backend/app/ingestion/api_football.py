@@ -39,6 +39,12 @@ class ApiFootballClient:
         path.parent.mkdir(parents=True, exist_ok=True)
         return path
 
+    # Free tier allows 10 requests/minute. We throttle each uncached call to stay
+    # below that; override via env var API_FOOTBALL_THROTTLE_SECONDS if on a paid plan.
+    _THROTTLE_SECONDS = 6.5
+    # Generous backoff for 429s — per-minute quotas can need a full minute to reset.
+    _BACKOFF_SECONDS = [5, 15, 30, 60, 60]
+
     async def _get(
         self,
         endpoint: str,
@@ -48,18 +54,22 @@ class ApiFootballClient:
         """Fetch endpoint, returning cached result if available."""
         cache_file = self._cache_path(endpoint, params)
         if cache_file.exists() and not force_refresh:
-            return json.loads(cache_file.read_text())
+            return json.loads(cache_file.read_text(encoding="utf-8"))
 
         async with httpx.AsyncClient(headers=self._headers, timeout=30) as client:
-            for attempt in range(5):
+            for attempt, delay in enumerate([0, *self._BACKOFF_SECONDS]):
+                if delay:
+                    await asyncio.sleep(delay)
                 resp = await client.get(f"{self._base}/{endpoint.lstrip('/')}", params=params)
                 if resp.status_code == 429:
-                    wait = 2 ** attempt
-                    await asyncio.sleep(wait)
                     continue
                 resp.raise_for_status()
                 data: dict[str, Any] = resp.json()
-                cache_file.write_text(json.dumps(data, ensure_ascii=False, indent=2))
+                cache_file.write_text(
+                    json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
+                )
+                # Proactive throttle so the next uncached call stays under 10/min
+                await asyncio.sleep(self._THROTTLE_SECONDS)
                 return data
         raise RuntimeError(f"Rate limited after retries: {endpoint}")
 
@@ -89,8 +99,11 @@ class ApiFootballClient:
 
     async def get_fixture_statistics(self, fixture_id: int) -> dict[str, Any]:
         """Fetch aggregated team statistics for a single fixture."""
-        # TODO: implement
         return await self._get("fixtures/statistics", {"fixture": fixture_id})
+
+    async def get_fixture_lineups(self, fixture_id: int) -> dict[str, Any]:
+        """Fetch starting lineups + formation for a single fixture."""
+        return await self._get("fixtures/lineups", {"fixture": fixture_id})
 
     async def get_fixture_players(self, fixture_id: int) -> dict[str, Any]:
         """Fetch per-player aggregated statistics for a single fixture."""
@@ -116,8 +129,60 @@ class ApiFootballClient:
         self, referee_name: str, league_id: int, season: int
     ) -> dict[str, Any]:
         """Fetch all fixtures officiated by a referee in a season."""
-        # TODO: implement
         return await self._get(
             "fixtures",
             {"referee": referee_name, "league": league_id, "season": season},
         )
+
+
+# ---------------------------------------------------------------------------
+# Parsing helpers (pure functions — no I/O, easy to unit-test)
+# ---------------------------------------------------------------------------
+
+def normalize_statistics(raw_stats: list[dict[str, Any]]) -> dict[str, float | int | None]:
+    """Convert API-Football's list-of-dicts stats into a flat snake_case dict.
+
+    Input  : [{"type": "Ball Possession", "value": "55%"}, ...]
+    Output : {"ball_possession": 55.0, ...}
+
+    String percentages are stripped and cast to float. Numeric strings are
+    cast to int or float. None / missing values stay as None.
+    """
+    out: dict[str, float | int | None] = {}
+    for entry in raw_stats:
+        raw_type = entry.get("type", "")
+        if not raw_type:
+            continue
+        key = raw_type.strip().lower().replace(" ", "_").replace("%", "pct").replace("__", "_")
+        value = entry.get("value")
+        out[key] = _coerce_stat_value(value)
+    return out
+
+
+def _coerce_stat_value(value: Any) -> float | int | None:
+    if value is None or value == "":
+        return None
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, (int, float)):
+        return value
+    if isinstance(value, str):
+        v = value.strip().rstrip("%")
+        try:
+            if "." in v:
+                return float(v)
+            return int(v)
+        except ValueError:
+            try:
+                return float(v)
+            except ValueError:
+                return None
+    return None
+
+
+def extract_formation(lineups_response: list[dict[str, Any]], team_id: int) -> str | None:
+    """From /fixtures/lineups response list, find the formation for a team."""
+    for entry in lineups_response:
+        if entry.get("team", {}).get("id") == team_id:
+            return entry.get("formation")
+    return None
