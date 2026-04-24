@@ -1,0 +1,5 @@
+*.csv
+*.mp4
+*.json
+/data
+Documentatie API.yml
