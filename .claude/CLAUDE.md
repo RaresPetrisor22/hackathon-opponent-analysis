@@ -15,7 +15,7 @@ Opponent Dossier is a pre-match scouting tool for FC Universitatea Cluj (Romania
   - `ingestion/` — `api_football.py` (fetch + cache), `upserts.py`, `raw/` cache tree
   - `analysis/` — six deterministic modules: `form`, `identity`, `matchups`, `players`, `game_state`, `referee`
   - `llm/` — `client.py` (single LLM gateway), `prompts.py` (all `ChatPromptTemplate`s), `orchestrator.py` (LangChain pipeline)
-  - `mock.py` — offline/demo data fallback
+  - `mock.py` — demo/stub data fallback
 - `frontend/` — Next.js 14
   - `app/dossier/` — dossier page route
   - `components/dossier/` — one panel per section (`FormPanel`, `IdentityCard`, `MatchupIntelligence`, `PlayerCards`, `GameStatePanel`, `RefereeCard`, `GameplanNarrative`, `PrintButton`)
@@ -59,8 +59,8 @@ No coordinate data. No heatmaps. No pressing zones. Everything is aggregated per
 - Archetype-based matchup intelligence is the core feature. `models/archetype.py` is a first-class entity; `analysis/matchups.py` predicts the matchup against `settings.fcu_team_id`.
 - Romanian SuperLiga league ID for API-Football: **283**, season **2024** (see `app/config.py` — `superliga_league_id`, `superliga_season`). FCU team ID: **2599** (`fcu_team_id`). Confirm at runtime if upstream data changes.
 - Default LLM: `gpt-4o` (`settings.openai_model`), temperature 0.3. Override via env, not in code.
-- SQLite is intentional — no Docker, no Postgres, runs offline at the venue. `database_url` defaults to `sqlite+aiosqlite:///./data/app.db`. `init_db()` runs `create_all` plus idempotent `ALTER TABLE` shims for late-added match columns.
-- `mock.py` provides offline/demo fallbacks — keep it in sync when ingestion shapes change.
+- SQLite is intentional — no Docker, no Postgres. `database_url` defaults to `sqlite+aiosqlite:///./data/app.db`. `init_db()` runs `create_all` plus idempotent `ALTER TABLE` shims for late-added match columns.
+- `mock.py` provides stub/demo data — keep it in sync when ingestion shapes change.
 - `uv` manages Python deps. Always edit `backend/pyproject.toml`; never `pip install` ad-hoc.
 
 ## Testing
