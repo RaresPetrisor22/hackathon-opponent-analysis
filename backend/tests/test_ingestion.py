@@ -87,13 +87,20 @@ class TestNormalizeStatistics:
         assert out["fouls"] == 10
 
     def test_none_values_preserved_as_none(self) -> None:
+        raw = [{"type": "expected_goals", "value": None}]
+        out = normalize_statistics(raw)
+        assert out["expected_goals"] is None
+
+    def test_dropped_keys_excluded(self) -> None:
+        # goals_prevented is in _DROPPED_STAT_KEYS — API-Football always
+        # returns it as None for SuperLiga, so it's filtered out entirely.
         raw = [
-            {"type": "expected_goals", "value": None},
+            {"type": "expected_goals", "value": 1.5},
             {"type": "goals_prevented", "value": None},
         ]
         out = normalize_statistics(raw)
-        assert out["expected_goals"] is None
-        assert out["goals_prevented"] is None
+        assert "goals_prevented" not in out
+        assert out["expected_goals"] == 1.5
 
     def test_empty_type_skipped(self) -> None:
         raw = [{"type": "", "value": 5}, {"type": "Fouls", "value": 10}]
