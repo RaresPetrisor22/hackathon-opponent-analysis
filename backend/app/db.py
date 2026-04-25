@@ -26,6 +26,13 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def init_db() -> None:
+    # Import models so their tables are registered with Base.metadata before create_all
+    import app.models.match  # noqa: F401
+    import app.models.player  # noqa: F401
+    import app.models.referee  # noqa: F401
+    import app.models.standings  # noqa: F401
+    import app.models.team  # noqa: F401
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         # Add columns introduced after initial schema creation (SQLite ALTER TABLE)
