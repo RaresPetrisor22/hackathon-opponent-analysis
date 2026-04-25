@@ -339,7 +339,7 @@ class TestArchetypeClusterer:
         labels = c.label_clusters()
         gd_idx = FEATURE_COLS.index("goal_diff")
         struggling_cluster = int(np.argmin(c.cluster_centers_original_[:, gd_idx]))
-        assert labels[struggling_cluster] == "Direct & Struggling"
+        assert labels[struggling_cluster] == "Defensive / Low Output"
 
 
 # ---------------------------------------------------------------------------

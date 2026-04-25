@@ -1,4 +1,4 @@
-import type { DossierResponse, TeamSummary } from "./types";
+import type { DossierResponse, RefereeSection, TeamSummary } from "./types";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -18,4 +18,12 @@ export async function fetchTeams(): Promise<TeamSummary[]> {
 
 export async function fetchDossier(teamId: number): Promise<DossierResponse> {
   return apiFetch<DossierResponse>(`/dossier/${teamId}`);
+}
+
+export async function fetchRefereeNames(): Promise<string[]> {
+  return apiFetch<string[]>("/referees");
+}
+
+export async function fetchRefereeStats(name: string): Promise<RefereeSection> {
+  return apiFetch<RefereeSection>(`/referees/stats?name=${encodeURIComponent(name)}`);
 }

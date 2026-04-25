@@ -29,6 +29,7 @@ export interface FormSection {
   goals_scored_avg: number;
   goals_conceded_avg: number;
   form_string: string;
+  llm_summary?: string;
 }
 
 // --- Identity ---
@@ -49,6 +50,7 @@ export interface IdentitySection {
   pressing_intensity: "high" | "medium" | "low";
   play_style: string;
   notes: string;
+  llm_summary?: string;
 }
 
 // --- Matchups ---
@@ -72,6 +74,8 @@ export interface MatchupSection {
   fcu_archetype_name: string;
   prediction_summary: string;
   best_archetype_vs_opponent: string;
+  fcu_tactical_profile: TacticalIdentityStats | null;
+  llm_insight?: string;
 }
 
 // --- Players ---
@@ -90,6 +94,7 @@ export interface PlayerCard {
 export interface PlayerCardsSection {
   key_threats: PlayerCard[];
   defensive_vulnerabilities: PlayerCard[];
+  llm_summary?: string;
 }
 
 // --- Game State ---
