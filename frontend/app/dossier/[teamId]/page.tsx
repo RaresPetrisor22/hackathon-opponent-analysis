@@ -19,7 +19,7 @@ export default async function DossierPage({ params }: Props) {
   const dossier = await fetchDossier(teamId);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+    <div id="dossier-content" className="max-w-7xl mx-auto px-4 py-8 space-y-6">
       {/* Page header */}
       <div className="flex items-start justify-between">
         <div className="space-y-1">

@@ -47,6 +47,10 @@ body {
 }
 
 /* Print / PDF export */
+@page {
+  margin: 12mm;
+}
+
 @media print {
   /* Force background/color rendering in all browsers */
   * {
@@ -62,9 +66,26 @@ body {
     display: none !important;
   }
 
+  /* Strip min-heights and top spacing that produce a blank leading page */
+  html,
   body {
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
     background-color: #0a0e1a !important;
     color: #f9fafb !important;
+  }
+
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Trim the dossier wrapper's vertical padding for print */
+  main > div {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
   }
 
   /* Keep cards intact across pages */
