@@ -32,12 +32,12 @@ def _read_cache(team_id: int) -> DossierResponse | None:
     )
     if age > _CACHE_TTL:
         return None
-    return DossierResponse.model_validate_json(path.read_text())
+    return DossierResponse.model_validate_json(path.read_text(encoding="utf-8"))
 
 
 def _write_cache(team_id: int, dossier: DossierResponse) -> None:
     _CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    _cache_path(team_id).write_text(dossier.model_dump_json())
+    _cache_path(team_id).write_text(dossier.model_dump_json(), encoding="utf-8")
 
 
 @router.get("/{team_id}", response_model=DossierResponse)
