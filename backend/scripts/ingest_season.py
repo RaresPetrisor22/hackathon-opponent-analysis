@@ -224,6 +224,11 @@ async def ingest_fixture_details(
                     api_pid = info.get("id")
                     if not api_pid:
                         continue
+                    # Position lives in statistics[0].games.position, not player.pos
+                    games_block = (p.get("statistics") or [{}])[0].get("games", {})
+                    position = games_block.get("position")
+                    jersey = games_block.get("number")
+
                     existing = (
                         await session.execute(
                             select(Player).where(Player.api_football_id == api_pid)
@@ -235,10 +240,17 @@ async def ingest_fixture_details(
                                 api_football_id=api_pid,
                                 team_id=internal_team_id,
                                 name=info.get("name", ""),
-                                position=info.get("pos"),
+                                position=position,
+                                jersey_number=jersey,
                                 photo_url=info.get("photo"),
                             )
                         )
+                    else:
+                        # Backfill position/jersey if previously missing
+                        if existing.position is None and position is not None:
+                            existing.position = position
+                        if existing.jersey_number is None and jersey is not None:
+                            existing.jersey_number = jersey
 
             progress.advance(task)
 
