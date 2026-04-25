@@ -21,6 +21,8 @@ async def get_dossier(
     """Generate and return the full pre-match dossier for the given opponent team."""
     try:
         return await generate_dossier(team_id, session)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
     except NotImplementedError:
         result = await session.execute(select(Team).where(Team.id == team_id))
         team = result.scalar_one_or_none()

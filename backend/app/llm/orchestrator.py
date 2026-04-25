@@ -20,12 +20,14 @@ import json
 from datetime import datetime, timezone
 
 from langchain_core.runnables import RunnableLambda, RunnableParallel
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.analysis import form, game_state, identity, matchups, players, referee
 from app.config import settings
 from app.llm.client import _get_llm
 from app.llm.prompts import GAMEPLAN_PROMPT
+from app.models.team import Team
 from app.schemas.dossier import (
     DossierResponse,
     FormSection,
@@ -36,6 +38,7 @@ from app.schemas.dossier import (
     PlayerCardsSection,
     RefereeSection,
 )
+
 
 # ---------------------------------------------------------------------------
 # Stage 1: Parallel Analysis Agents
@@ -51,30 +54,26 @@ def _build_parallel_stage(
     Using RunnableLambda so each async function integrates cleanly with
     LangChain's ainvoke, which handles coroutine detection automatically.
     """
-    ctx = {"team_id": team_id, "session": session}
 
     async def run_form(_: dict) -> FormSection:
-        # TODO: implement — calls form.compute_form
         return await form.compute_form(team_id, session)
 
     async def run_identity(_: dict) -> IdentitySection:
-        # TODO: implement — calls identity.compute_identity
         return await identity.compute_identity(team_id, session)
 
     async def run_matchups(_: dict) -> MatchupSection:
-        # TODO: implement — calls matchups.predict_matchup
         return await matchups.predict_matchup(team_id, settings.fcu_team_id, session)
 
     async def run_players(_: dict) -> PlayerCardsSection:
-        # TODO: implement — calls players.compute_player_cards
         return await players.compute_player_cards(team_id, session)
 
     async def run_game_state(_: dict) -> GameStateSection:
-        # TODO: implement — calls game_state.compute_game_state
         return await game_state.compute_game_state(team_id, session)
 
     async def run_referee(_: dict) -> RefereeSection:
-        # TODO: implement — calls referee.compute_referee_context
+        # No upcoming-fixture wiring yet — pass None so referee.py returns
+        # the unassigned-fixture stub. Replace with actual referee_name once
+        # the upcoming-fixture lookup is in place.
         return await referee.compute_referee_context(
             None, settings.superliga_league_id, settings.superliga_season, session
         )
@@ -115,7 +114,12 @@ async def generate_dossier(
     Returns:
         DossierResponse with all seven sections populated.
     """
-    # TODO: fetch opponent Team row from DB to get name for prompts
+    opponent = (
+        await session.execute(select(Team).where(Team.id == opponent_team_id))
+    ).scalar_one_or_none()
+    if opponent is None:
+        raise ValueError(f"Opponent team_id={opponent_team_id} not found.")
+    opponent_name = opponent.name
 
     # ---- Stage 1: Parallel Analysis Agents --------------------------------
     parallel = _build_parallel_stage(opponent_team_id, session)
@@ -129,7 +133,7 @@ async def generate_dossier(
     referee_section: RefereeSection = sections["referee"]
 
     # ---- Stage 2: Gameplan Synthesis Agent --------------------------------
-    # TODO: replace "TBD" placeholders once Team DB fetch is implemented
+    now = datetime.now(timezone.utc)
     full_dossier_json = json.dumps(
         {
             "form": form_section.model_dump(),
@@ -145,16 +149,16 @@ async def generate_dossier(
     gameplan_chain = _build_gameplan_chain()
     gameplan: GameplanNarrative = await gameplan_chain.ainvoke(  # type: ignore[assignment]
         {
-            "opponent_name": "TBD",
-            "match_date": "TBD",
+            "opponent_name": opponent_name,
+            "match_date": now.date().isoformat(),
             "full_dossier_json": full_dossier_json,
         }
     )
 
     return DossierResponse(
         opponent_id=opponent_team_id,
-        opponent_name="TBD",
-        generated_at=datetime.now(timezone.utc).isoformat(),
+        opponent_name=opponent_name,
+        generated_at=now.isoformat(),
         form=form_section,
         identity=identity_section,
         matchups=matchup_section,
