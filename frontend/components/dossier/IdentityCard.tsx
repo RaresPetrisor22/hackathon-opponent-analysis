@@ -1,4 +1,6 @@
 import type { IdentitySection } from "@/lib/types";
+import { Badge } from "@/components/ui/badge";
+import { RadarFingerprint } from "@/components/charts/RadarFingerprint";
 
 interface Props {
   data: IdentitySection;
@@ -9,6 +11,17 @@ const INTENSITY_COLORS: Record<string, string> = {
   medium: "text-warning",
   low: "text-accent",
 };
+
+function buildRadarData(stats: IdentitySection["stats"]) {
+  return [
+    { metric: "Possession", value: stats.avg_possession, fullMark: 100 },
+    { metric: "Pass Acc.", value: stats.avg_pass_accuracy, fullMark: 100 },
+    { metric: "Shots", value: stats.avg_shots, fullMark: 22 },
+    { metric: "On Target", value: stats.avg_shots_on_target, fullMark: 10 },
+    { metric: "Corners", value: stats.avg_corners, fullMark: 10 },
+    { metric: "Fouls", value: stats.avg_fouls, fullMark: 20 },
+  ];
+}
 
 export function IdentityCard({ data }: Props) {
   const stats = data.stats;
@@ -24,23 +37,29 @@ export function IdentityCard({ data }: Props) {
 
       <div className="flex gap-2 items-center">
         <span className="text-xs text-muted-fg">Press:</span>
-        <span
-          className={`text-xs font-mono font-medium uppercase ${INTENSITY_COLORS[data.pressing_intensity] ?? ""}`}
-        >
+        <Badge className={`text-[10px] font-mono uppercase border-0 bg-transparent px-0 ${INTENSITY_COLORS[data.pressing_intensity] ?? ""}`}>
           {data.pressing_intensity}
-        </span>
+        </Badge>
         <span className="mx-2 text-surface-2">|</span>
         <span className="text-xs text-muted-fg">Style:</span>
         <span className="text-xs font-medium text-white">{data.play_style}</span>
       </div>
 
+      {/* Tactical fingerprint radar */}
+      <div>
+        <p className="text-[10px] font-mono text-muted-fg uppercase tracking-widest mb-1">
+          Tactical fingerprint
+        </p>
+        <RadarFingerprint data={buildRadarData(stats)} height={200} />
+      </div>
+
       <div className="space-y-2">
         <StatBar label="Possession" value={stats.avg_possession} max={100} unit="%" />
         <StatBar label="Pass acc" value={stats.avg_pass_accuracy} max={100} unit="%" />
-        <StatBar label="Shots" value={stats.avg_shots} max={25} unit="/game" />
-        <StatBar label="Shots on target" value={stats.avg_shots_on_target} max={15} unit="/game" />
+        <StatBar label="Shots" value={stats.avg_shots} max={22} unit="/game" />
+        <StatBar label="Shots on target" value={stats.avg_shots_on_target} max={10} unit="/game" />
         <StatBar label="Fouls" value={stats.avg_fouls} max={20} unit="/game" />
-        <StatBar label="Corners" value={stats.avg_corners} max={12} unit="/game" />
+        <StatBar label="Corners" value={stats.avg_corners} max={10} unit="/game" />
       </div>
 
       {data.notes && (

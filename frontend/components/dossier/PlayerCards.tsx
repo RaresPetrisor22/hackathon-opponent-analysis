@@ -1,4 +1,5 @@
 import type { PlayerCard, PlayerCardsSection } from "@/lib/types";
+import { Badge } from "@/components/ui/badge";
 
 interface Props {
   data: PlayerCardsSection;
@@ -29,11 +30,11 @@ function Card({ player }: { player: PlayerCard }) {
             {player.jersey_number != null && ` · #${player.jersey_number}`}
           </p>
         </div>
-        <span
-          className={`text-[10px] font-mono uppercase ${THREAT_BADGE[player.threat_level] ?? ""}`}
+        <Badge
+          className={`text-[10px] font-mono uppercase ${THREAT_BADGE[player.threat_level] ?? ""} border-0 bg-transparent px-0`}
         >
           {player.threat_level}
-        </span>
+        </Badge>
       </div>
 
       <div className="flex flex-wrap gap-x-4 gap-y-1">

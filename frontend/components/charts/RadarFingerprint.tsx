@@ -17,11 +17,12 @@ interface DataPoint {
 interface Props {
   data: DataPoint[];
   color?: string;
+  height?: number;
 }
 
-export function RadarFingerprint({ data, color = "#00ff88" }: Props) {
+export function RadarFingerprint({ data, color = "#00ff88", height = 280 }: Props) {
   return (
-    <ResponsiveContainer width="100%" height={220}>
+    <ResponsiveContainer width="100%" height={height}>
       <RadarChart data={data}>
         <PolarGrid stroke="#1c2333" />
         <PolarAngleAxis

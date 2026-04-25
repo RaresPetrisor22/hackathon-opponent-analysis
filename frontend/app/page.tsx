@@ -4,6 +4,14 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { fetchTeams } from "@/lib/api";
 import type { TeamSummary } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function HomePage() {
   const router = useRouter();
@@ -31,26 +39,26 @@ export default function HomePage() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
-        <select
-          className="flex-1 bg-surface border border-surface-2 rounded px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-accent"
-          value={selectedId}
-          onChange={(e) => setSelectedId(e.target.value)}
-        >
-          <option value="">Select opponent...</option>
-          {teams.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name}
-            </option>
-          ))}
-        </select>
+        <Select value={selectedId} onValueChange={setSelectedId}>
+          <SelectTrigger className="flex-1 bg-surface border-surface-2 text-white h-10">
+            <SelectValue placeholder="Select opponent..." />
+          </SelectTrigger>
+          <SelectContent position="popper" sideOffset={4}>
+            {teams.map((t) => (
+              <SelectItem key={t.id} value={String(t.id)}>
+                {t.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        <button
+        <Button
           onClick={handleGenerate}
           disabled={!selectedId || loading}
-          className="px-5 py-2 bg-accent text-background font-medium text-sm rounded disabled:opacity-40 hover:bg-accent-dim transition-colors"
+          className="h-10 px-6 bg-accent text-background font-medium hover:bg-accent-dim disabled:opacity-40"
         >
           {loading ? "Loading..." : "Generate Dossier"}
-        </button>
+        </Button>
       </div>
     </div>
   );

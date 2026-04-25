@@ -394,6 +394,123 @@ async def get_team_record_vs_archetypes(
 
 
 # ---------------------------------------------------------------------------
+# Prediction summary — comparative, grounded in the actual numbers
+# ---------------------------------------------------------------------------
+
+def _build_prediction_summary(
+    fcu_archetype_name: str,
+    fcu_record: ArchetypeRecord | None,
+    opp_records: list[ArchetypeRecord],
+    best_arch_name: str,
+    stub_summary: str,
+) -> str:
+    """Generate a comparative, coach-readable prediction summary.
+
+    Returns 1-3 short paragraphs separated by blank lines. Every number cited is
+    derived directly from `opp_records` — no LLM, no invented stats.
+
+    Structure:
+        1. Headline: opponent's win rate vs U Cluj's archetype, compared to
+           their season-wide average.
+        2. Goal pattern (only when the gap is meaningful): whether the
+           opponent concedes more / fewer goals than usual against this style.
+        3. Tactical recommendation: stick with U Cluj's natural style, or
+           consider tactical elements from the opponent's weakest archetype.
+    """
+    if fcu_archetype_name == "Unknown":
+        return stub_summary
+
+    total_played = sum(r.matches_played for r in opp_records)
+    total_wins = sum(r.wins for r in opp_records)
+    if total_played == 0:
+        return (
+            f"Insufficient season data to evaluate the matchup for U Cluj's "
+            f"'{fcu_archetype_name}' style."
+        )
+
+    overall_win_rate = total_wins / total_played
+    overall_ga = (
+        sum(r.goals_against * r.matches_played for r in opp_records) / total_played
+    )
+
+    paragraphs: list[str] = []
+
+    # --- Paragraph 1: headline comparison -----------------------------------
+    if fcu_record and fcu_record.matches_played >= 3:
+        vs_fcu_win_rate = fcu_record.wins / fcu_record.matches_played
+        delta_pct_pts = (vs_fcu_win_rate - overall_win_rate) * 100
+
+        if abs(delta_pct_pts) < 10:
+            paragraphs.append(
+                f"Against teams that play like U Cluj ('{fcu_archetype_name}'), "
+                f"this opponent performs roughly in line with their season "
+                f"average — {round(vs_fcu_win_rate * 100)}% wins versus "
+                f"{round(overall_win_rate * 100)}% overall. Expect a balanced "
+                f"tactical contest."
+            )
+        elif delta_pct_pts < 0:
+            paragraphs.append(
+                f"This opponent struggles against teams that play like U Cluj. "
+                f"Their win rate against the '{fcu_archetype_name}' style is "
+                f"{round(vs_fcu_win_rate * 100)}%, well below their "
+                f"{round(overall_win_rate * 100)}% season-wide rate."
+            )
+        else:
+            paragraphs.append(
+                f"This opponent performs above their usual level against teams "
+                f"that play like U Cluj — {round(vs_fcu_win_rate * 100)}% win "
+                f"rate versus the '{fcu_archetype_name}' style, against "
+                f"{round(overall_win_rate * 100)}% overall. Treat the matchup "
+                f"with caution."
+            )
+
+        # --- Paragraph 2: defensive-pattern insight (only if gap > 0.4 g/g) -
+        ga_delta = fcu_record.goals_against - overall_ga
+        if abs(ga_delta) >= 0.4:
+            if ga_delta > 0:
+                paragraphs.append(
+                    f"They concede more than usual against this style — "
+                    f"{fcu_record.goals_against:.1f} goals per game vs "
+                    f"{overall_ga:.1f} season average. Chances should come "
+                    f"in transition and from sustained territorial pressure."
+                )
+            else:
+                paragraphs.append(
+                    f"Their defence tightens up against this style — "
+                    f"{fcu_record.goals_against:.1f} goals conceded per game "
+                    f"vs {overall_ga:.1f} season average. Quality finishing "
+                    f"will matter more than chance volume."
+                )
+    elif fcu_record and fcu_record.matches_played > 0:
+        paragraphs.append(
+            f"Sample is limited ({fcu_record.matches_played} games against "
+            f"the '{fcu_archetype_name}' style). The numbers below are "
+            f"directional rather than conclusive."
+        )
+    else:
+        paragraphs.append(
+            f"This opponent has not faced enough teams playing the "
+            f"'{fcu_archetype_name}' style this season to derive a reliable "
+            f"matchup signal."
+        )
+
+    # --- Paragraph 3: tactical recommendation -------------------------------
+    if best_arch_name == fcu_archetype_name:
+        paragraphs.append(
+            "U Cluj's natural style is also the opponent's statistical weak "
+            "spot — no tactical adjustment needed. Stick with the gameplan."
+        )
+    elif best_arch_name != "Unknown":
+        paragraphs.append(
+            f"If the matchup turns sour, the opponent's broader weakness is "
+            f"against '{best_arch_name}' teams — borrow tactical elements "
+            f"from that style if a shift is needed."
+        )
+
+    return "\n\n".join(paragraphs)
+
+
+# ---------------------------------------------------------------------------
 # Main dossier entry point
 # ---------------------------------------------------------------------------
 
@@ -494,22 +611,13 @@ async def predict_matchup(
     fcu_record = next(
         (r for r in opp_records if r.archetype_id == fcu_archetype_id), None
     )
-    if fcu_record and fcu_record.matches_played > 0:
-        summary = (
-            f"FC U Cluj plays a '{fcu_archetype_name}' style. "
-            f"Opponent's record vs this archetype: "
-            f"{fcu_record.wins}W {fcu_record.draws}D {fcu_record.losses}L "
-            f"({fcu_record.goals_for:.1f} GF / {fcu_record.goals_against:.1f} GA avg). "
-            f"Their weakest opponent archetype is '{best_arch_name}'."
-        )
-    elif fcu_archetype_name != "Unknown":
-        summary = (
-            f"FC U Cluj plays a '{fcu_archetype_name}' style. "
-            f"Insufficient archetype matchup data for this specific opponent. "
-            f"Overall, their weakest archetype matchup is '{best_arch_name}'."
-        )
-    else:
-        summary = _stub_summary
+    summary = _build_prediction_summary(
+        fcu_archetype_name=fcu_archetype_name,
+        fcu_record=fcu_record,
+        opp_records=opp_records,
+        best_arch_name=best_arch_name,
+        stub_summary=_stub_summary,
+    )
 
     return MatchupSection(
         archetypes=opp_records,
