@@ -303,7 +303,7 @@ class ArchetypeClusterer:
         # Priority 2: lowest goal_diff among remaining
         remaining = [i for i in range(N_CLUSTERS) if i not in assigned]
         struggling = remaining[int(np.argmin(gd[remaining]))]
-        result[struggling] = "Direct & Struggling"
+        result[struggling] = "Defensive / Low Output"
         assigned.add(struggling)
 
         # Priority 3: highest long_shot_ratio among remaining
