@@ -7,6 +7,7 @@ import { GameStatePanel } from "@/components/dossier/GameStatePanel";
 import { RefereeCard } from "@/components/dossier/RefereeCard";
 import { GameplanNarrative } from "@/components/dossier/GameplanNarrative";
 import { PrintButton } from "@/components/dossier/PrintButton";
+import { ChatWidgetWrapper } from "@/components/dossier/ChatWidgetWrapper";
 
 interface Props {
   params: { teamId: string };
@@ -48,6 +49,9 @@ export default async function DossierPage({ params }: Props) {
       <section className="w-full">
         <GameplanNarrative data={dossier.gameplan} />
       </section>
+
+      {/* Floating chat assistant */}
+      <ChatWidgetWrapper dossier={dossier as unknown as Record<string, unknown>} />
     </div>
   );
 }

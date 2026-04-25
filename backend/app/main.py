@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.db import init_db
-from app.routes import dossier, health, teams
+from app.routes import chat, dossier, health, teams
 
 
 @asynccontextmanager
@@ -34,3 +34,4 @@ app.add_middleware(
 app.include_router(health.router, tags=["health"])
 app.include_router(teams.router, prefix="/teams", tags=["teams"])
 app.include_router(dossier.router, prefix="/dossier", tags=["dossier"])
+app.include_router(chat.router, prefix="/chat", tags=["chat"])
