@@ -83,6 +83,9 @@ export function RefereeCard({ data }: Props) {
           </div>
         </SelectTrigger>
         <SelectContent
+          position="popper"
+          side="bottom"
+          sideOffset={4}
           className="
             bg-[#0d1424] border border-surface-2
             text-white rounded-md shadow-xl
