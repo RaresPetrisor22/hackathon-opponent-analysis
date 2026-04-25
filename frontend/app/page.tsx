@@ -46,7 +46,13 @@ export default function HomePage() {
           <SelectContent position="popper" side="bottom" sideOffset={4} avoidCollisions={false}>
             {teams.map((t) => (
               <SelectItem key={t.id} value={String(t.id)}>
-                {t.name}
+                <span className="flex items-center gap-2">
+                  {t.logo_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={t.logo_url} alt="" width={18} height={18} className="object-contain shrink-0" />
+                  )}
+                  {t.name}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>

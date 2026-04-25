@@ -139,6 +139,7 @@ class GameplanNarrative(BaseModel):
 class DossierResponse(BaseModel):
     opponent_id: int
     opponent_name: str
+    opponent_logo_url: str | None = None
     generated_at: str   # ISO datetime
 
     form: FormSection

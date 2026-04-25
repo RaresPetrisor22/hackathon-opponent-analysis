@@ -139,6 +139,7 @@ export interface GameplanNarrative {
 export interface DossierResponse {
   opponent_id: number;
   opponent_name: string;
+  opponent_logo_url: string | null;
   generated_at: string;
   form: FormSection;
   identity: IdentitySection;

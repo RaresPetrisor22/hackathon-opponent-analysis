@@ -229,6 +229,7 @@ async def generate_dossier(
     return DossierResponse(
         opponent_id=opponent_team_id,
         opponent_name=opponent_name,
+        opponent_logo_url=opponent.logo_url,
         generated_at=now.isoformat(),
         form=form_section,
         identity=identity_section,

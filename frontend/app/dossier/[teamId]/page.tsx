@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { fetchDossier } from "@/lib/api";
 import { FormPanel } from "@/components/dossier/FormPanel";
 import { IdentityCard } from "@/components/dossier/IdentityCard";
@@ -25,7 +26,18 @@ export default async function DossierPage({ params }: Props) {
           <p className="text-[10px] font-mono text-accent uppercase tracking-widest">
             Pre-Match Dossier · FC Universitatea Cluj
           </p>
-          <h1 className="text-3xl font-bold text-white">{dossier.opponent_name}</h1>
+          <div className="flex items-center gap-3">
+            {dossier.opponent_logo_url && (
+              <Image
+                src={dossier.opponent_logo_url}
+                alt={dossier.opponent_name}
+                width={48}
+                height={48}
+                className="object-contain"
+              />
+            )}
+            <h1 className="text-3xl font-bold text-white">{dossier.opponent_name}</h1>
+          </div>
           <p className="text-muted-fg text-xs font-mono">
             Generated {new Date(dossier.generated_at).toLocaleString()}
           </p>
