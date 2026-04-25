@@ -29,70 +29,107 @@ const API_URL =
 /*  Markdown-lite renderer for assistant messages                      */
 /* ------------------------------------------------------------------ */
 
+import { Mermaid } from "./Mermaid";
+
 /**
  * Renders a lightweight subset of markdown:
  *  - **bold**
  *  - Bullet lines (• or -)
  *  - Blank-line paragraph separation
  *  - Emoji section prefixes get a subtle highlight
+ *  - Mermaid code blocks
  */
 function renderMarkdown(text: string): React.ReactNode[] {
-  const paragraphs = text.split(/\n{2,}/);
+  // First extract mermaid blocks
+  const parts = [];
+  const mermaidRegex = /```mermaid\n([\s\S]*?)```/g;
+  let lastIndex = 0;
+  let match;
 
-  return paragraphs.map((para, pi) => {
-    const lines = para.split("\n");
-    const isBulletBlock = lines.every(
-      (l) => /^\s*[•\-\*]\s/.test(l) || l.trim() === ""
-    );
-
-    if (isBulletBlock) {
-      const bullets = lines.filter((l) => l.trim() !== "");
-      return (
-        <div key={pi} style={{ margin: "6px 0" }}>
-          {bullets.map((b, bi) => {
-            const content = b.replace(/^\s*[•\-\*]\s*/, "");
-            return (
-              <div
-                key={bi}
-                style={{
-                  display: "flex",
-                  gap: 8,
-                  alignItems: "flex-start",
-                  marginBottom: 4,
-                  lineHeight: 1.55,
-                }}
-              >
-                <span
-                  style={{
-                    color: "#00ff88",
-                    flexShrink: 0,
-                    fontWeight: 700,
-                    fontSize: 10,
-                    marginTop: 4,
-                  }}
-                >
-                  ●
-                </span>
-                <span>{renderInline(content)}</span>
-              </div>
-            );
-          })}
-        </div>
-      );
+  while ((match = mermaidRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({ type: 'text', content: text.slice(lastIndex, match.index) });
     }
+    parts.push({ type: 'mermaid', content: match[1] });
+    lastIndex = mermaidRegex.lastIndex;
+  }
+  
+  if (lastIndex < text.length) {
+    parts.push({ type: 'text', content: text.slice(lastIndex) });
+  }
 
-    // Regular paragraph
-    return (
-      <p key={pi} style={{ margin: "6px 0", lineHeight: 1.6 }}>
-        {lines.map((line, li) => (
-          <React.Fragment key={li}>
-            {li > 0 && <br />}
-            {renderInline(line)}
-          </React.Fragment>
-        ))}
-      </p>
-    );
+  const nodes: React.ReactNode[] = [];
+  
+  parts.forEach((part, index) => {
+    if (part.type === 'mermaid') {
+      nodes.push(<Mermaid key={`mermaid-${index}`} chart={part.content} />);
+    } else {
+      const paragraphs = part.content.split(/\n{2,}/);
+      paragraphs.forEach((para, pi) => {
+        if (!para.trim()) return;
+        const lines = para.split("\n");
+        const isBulletBlock = lines.every(
+          (l) => /^\s*[•\-\*]\s/.test(l) || l.trim() === ""
+        );
+
+        if (isBulletBlock) {
+          const bullets = lines.filter((l) => l.trim() !== "");
+          nodes.push(
+            <div key={`para-${index}-${pi}`} style={{ margin: "6px 0" }}>
+              {bullets.map((b, bi) => {
+                const content = b.replace(/^\s*[•\-\*]\s*/, "");
+                return (
+                  <div
+                    key={bi}
+                    style={{
+                      display: "flex",
+                      gap: 8,
+                      alignItems: "flex-start",
+                      marginBottom: 4,
+                      lineHeight: 1.55,
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: "#00ff88",
+                        flexShrink: 0,
+                        fontWeight: 700,
+                        fontSize: 10,
+                        marginTop: 4,
+                      }}
+                    >
+                      ●
+                    </span>
+                    <span>{renderInline(content)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        } else {
+          // Regular paragraph
+          nodes.push(
+            <p key={`para-${index}-${pi}`} style={{ 
+              margin: "6px 0", 
+              lineHeight: 1.6,
+              whiteSpace: "pre-wrap",
+              fontFamily: "inherit",
+              fontSize: "inherit"
+            }}>
+              {lines.map((line, li) => (
+                <React.Fragment key={li}>
+                  {li > 0 && <br />}
+                  {renderInline(line)}
+                </React.Fragment>
+              ))}
+            </p>
+          );
+        }
+      });
+    }
   });
+
+  return nodes;
 }
 
 /** Render inline markdown: **bold** */
@@ -355,10 +392,10 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
               {/* Quick suggestion chips */}
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center", maxWidth: 300 }}>
                 {[
-                  "Key players?",
-                  "Weaknesses?",
-                  "Formation?",
-                  "Recent form?",
+                  "Who are their key players?",
+                  "What are their weaknesses?",
+                  "What is their preferred formation?",
+                  "What is their recent form?",
                 ].map((suggestion) => (
                   <button
                     key={suggestion}
