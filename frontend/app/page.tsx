@@ -43,7 +43,7 @@ export default function HomePage() {
           <SelectTrigger className="flex-1 bg-surface border-surface-2 text-white h-10">
             <SelectValue placeholder="Select opponent..." />
           </SelectTrigger>
-          <SelectContent position="popper" sideOffset={4}>
+          <SelectContent position="popper" side="bottom" sideOffset={4}>
             {teams.map((t) => (
               <SelectItem key={t.id} value={String(t.id)}>
                 {t.name}
