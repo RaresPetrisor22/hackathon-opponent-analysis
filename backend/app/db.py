@@ -28,3 +28,13 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 async def init_db() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Add columns introduced after initial schema creation (SQLite ALTER TABLE)
+        for col in ("events", "players_home", "players_away"):
+            try:
+                await conn.execute(
+                    __import__("sqlalchemy").text(
+                        f"ALTER TABLE matches ADD COLUMN {col} JSON"
+                    )
+                )
+            except Exception:
+                pass  # column already exists

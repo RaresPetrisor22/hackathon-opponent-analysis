@@ -46,6 +46,7 @@ from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.match import Match
 from app.schemas.dossier import ArchetypeRecord, MatchupSection
 
 FEATURE_COLS = [
@@ -122,8 +123,15 @@ async def build_feature_matrix(session: AsyncSession) -> pd.DataFrame:
 
     Returns a DataFrame with FEATURE_COLS plus metadata columns:
     match_id, team_id, season.
+
+    Only matches passing Match.complete() are included — five 2024-25 fixtures
+    have no stats from the API and must not distort cluster centroids.
     """
+    from sqlalchemy import select
+
     # TODO: implement — query Match, compute features per match per team
+    # All queries MUST use .where(Match.complete()) — see Match.complete() docstring.
+    _ = select(Match).where(Match.complete())  # placeholder showing the required filter
     return pd.DataFrame(columns=["match_id", "team_id", "season", *FEATURE_COLS])
 
 

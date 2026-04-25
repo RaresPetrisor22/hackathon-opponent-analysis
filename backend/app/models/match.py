@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import DateTime, ForeignKey, Index, String
 from sqlalchemy.orm import Mapped, mapped_column
@@ -35,6 +36,13 @@ class Match(Base):
     stats_home: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     stats_away: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
+    # Raw /fixtures/events response list (goals, cards, subs with minute)
+    events: Mapped[list | None] = mapped_column(JSON, nullable=True)
+
+    # Raw /fixtures/players response per team (list of player stat dicts)
+    players_home: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    players_away: Mapped[list | None] = mapped_column(JSON, nullable=True)
+
     # Assigned archetype IDs (set by build_archetypes script)
     home_archetype_id: Mapped[int | None] = mapped_column(
         ForeignKey("archetypes.id"), nullable=True
@@ -47,3 +55,16 @@ class Match(Base):
         Index("ix_matches_teams", "home_team_id", "away_team_id"),
         Index("ix_matches_date", "date"),
     )
+
+    @classmethod
+    def complete(cls) -> Any:
+        """SQLAlchemy WHERE clause that selects only matches with full stats.
+
+        Five fixtures in the 2024-25 season have no stats from the API
+        (API-Football returned an empty response). All analysis queries must
+        apply this filter to keep aggregations consistent.
+
+        Usage:
+            select(Match).where(Match.complete())
+        """
+        return cls.stats_home.is_not(None)
