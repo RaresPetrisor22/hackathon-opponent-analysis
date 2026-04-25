@@ -6,6 +6,7 @@ import { PlayerCards } from "@/components/dossier/PlayerCards";
 import { GameStatePanel } from "@/components/dossier/GameStatePanel";
 import { RefereeCard } from "@/components/dossier/RefereeCard";
 import { GameplanNarrative } from "@/components/dossier/GameplanNarrative";
+import { PrintButton } from "@/components/dossier/PrintButton";
 
 interface Props {
   params: { teamId: string };
@@ -24,6 +25,7 @@ export default async function DossierPage({ params }: Props) {
             Generated {new Date(dossier.generated_at).toLocaleString()}
           </p>
         </div>
+        <PrintButton />
       </div>
 
       {/* Hero row */}

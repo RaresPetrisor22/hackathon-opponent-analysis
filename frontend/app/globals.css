@@ -46,6 +46,42 @@ body {
   box-sizing: border-box;
 }
 
+/* Print / PDF export */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  header {
+    display: none !important;
+  }
+
+  body {
+    background-color: #0a0e1a !important;
+    color: #f9fafb !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .grid {
+    display: block !important;
+  }
+
+  .grid > * {
+    margin-bottom: 1rem;
+    break-inside: avoid;
+  }
+
+  section {
+    break-inside: avoid;
+  }
+
+  /* Force a page break before the gameplan section */
+  section:last-of-type {
+    break-before: page;
+  }
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
