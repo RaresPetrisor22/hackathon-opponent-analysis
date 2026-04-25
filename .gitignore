@@ -5,7 +5,6 @@ __pycache__/
 .venv/
 venv/
 .env
-*.db
 *.sqlite
 dist/
 build/
@@ -31,7 +30,6 @@ backend/app/ingestion/raw/**/*.json
 !backend/app/ingestion/raw/**/.gitkeep
 
 # Data
-backend/data/*.db
 *.csv
 *.mp4
 /data
