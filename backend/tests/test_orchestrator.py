@@ -159,11 +159,12 @@ class TestGenerateDossier:
         assert result.identity is not None
         assert result.matchups is not None
         assert result.game_state is not None
-        # players + referee should fall back to empty sections (NotImplementedError
-        # raised by real modules; orchestrator catches and substitutes).
+        # players still falls back to an empty section (NotImplementedError
+        # caught in orchestrator). referee runs live now and, with no
+        # upcoming-fixture lookup yet, returns the unassigned-referee stub.
         assert result.players.key_threats == []
         assert result.referee.referee_name is None
-        assert "not yet implemented" in result.referee.notes
+        assert "No referee assigned" in result.referee.notes
 
     @pytest.mark.asyncio
     async def test_gameplan_chain_receives_opponent_name_and_dossier_json(
@@ -194,18 +195,6 @@ class TestEmptySectionFallbacks:
         assert isinstance(s, PlayerCardsSection)
         assert s.key_threats == []
         assert s.defensive_vulnerabilities == []
-
-    def test_empty_referee_section_shape(self) -> None:
-        s = orchestrator._empty_referee_section()
-        assert isinstance(s, RefereeSection)
-        assert s.referee_name is None
-        assert s.total_matches == 0
-        assert s.avg_yellow_cards == 0.0
-        assert s.avg_red_cards == 0.0
-        assert s.avg_fouls_called == 0.0
-        assert s.home_advantage_factor is None
-        assert "not yet implemented" in s.notes
-
 
 class TestExceptionPropagation:
     """Only NotImplementedError from players/referee is swallowed.

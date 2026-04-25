@@ -41,25 +41,13 @@ from app.schemas.dossier import (
 
 
 # ---------------------------------------------------------------------------
-# Graceful fallbacks — players.py and referee.py are not yet implemented.
-# Returning empty sections keeps the dossier endpoint usable for demos
-# while those modules are being written. Remove once both are live.
+# Graceful fallback — players.py is not yet implemented. Returning an empty
+# section keeps the dossier endpoint usable for demos while it's being
+# written. Remove once players.compute_player_cards is live.
 # ---------------------------------------------------------------------------
 
 def _empty_players_section() -> PlayerCardsSection:
     return PlayerCardsSection(key_threats=[], defensive_vulnerabilities=[])
-
-
-def _empty_referee_section() -> RefereeSection:
-    return RefereeSection(
-        referee_name=None,
-        total_matches=0,
-        avg_yellow_cards=0.0,
-        avg_red_cards=0.0,
-        avg_fouls_called=0.0,
-        home_advantage_factor=None,
-        notes="Referee analysis not yet implemented.",
-    )
 
 
 # ---------------------------------------------------------------------------
@@ -96,12 +84,12 @@ def _build_parallel_stage(
         return await game_state.compute_game_state(team_id, session)
 
     async def run_referee(_: dict) -> RefereeSection:
-        try:
-            return await referee.compute_referee_context(
-                None, settings.superliga_league_id, settings.superliga_season, session
-            )
-        except NotImplementedError:
-            return _empty_referee_section()
+        # No upcoming-fixture wiring yet — pass None so referee.py returns
+        # the unassigned-fixture stub. Replace with actual referee_name once
+        # the upcoming-fixture lookup is in place.
+        return await referee.compute_referee_context(
+            None, settings.superliga_league_id, settings.superliga_season, session
+        )
 
     return RunnableParallel(
         form=RunnableLambda(run_form),
