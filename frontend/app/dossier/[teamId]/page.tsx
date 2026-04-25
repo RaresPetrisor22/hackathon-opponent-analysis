@@ -34,7 +34,7 @@ export default async function DossierPage({ params }: Props) {
 
       {/* Hero section */}
       <section className="w-full">
-        <MatchupIntelligence data={dossier.matchups} opponentIdentity={dossier.identity.stats} />
+        <MatchupIntelligence data={dossier.matchups} opponentIdentity={dossier.identity.stats} opponentName={dossier.opponent_name} />
       </section>
 
       {/* Supporting analysis divider */}

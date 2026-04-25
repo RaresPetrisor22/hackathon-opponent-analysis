@@ -14,6 +14,7 @@ import {
 interface Props {
   data: MatchupSection;
   opponentIdentity: TacticalIdentityStats;
+  opponentName: string;
 }
 
 function WinRateBar({ wins, draws, losses }: { wins: number; draws: number; losses: number }) {
@@ -140,7 +141,7 @@ function ArchetypeCard({
   );
 }
 
-export function MatchupIntelligence({ data, opponentIdentity }: Props) {
+export function MatchupIntelligence({ data, opponentIdentity, opponentName }: Props) {
   const [activeId, setActiveId] = useState<number | null>(null);
   const active =
     activeId != null ? data.archetypes.find((a) => a.archetype_id === activeId) : null;
@@ -164,11 +165,9 @@ export function MatchupIntelligence({ data, opponentIdentity }: Props) {
       a.wins / (a.wins + a.draws + a.losses || 1)
   )[0];
 
-  const bestWinRate = bestMatchup
-    ? Math.round(
-        (bestMatchup.wins / (bestMatchup.wins + bestMatchup.draws + bestMatchup.losses || 1)) * 100
-      )
-    : 0;
+  const bestTotal = bestMatchup ? bestMatchup.wins + bestMatchup.draws + bestMatchup.losses || 1 : 1;
+  const bestWinRate = bestMatchup ? Math.round((bestMatchup.wins / bestTotal) * 100) : 0;
+  const bestLossRate = 100 - bestWinRate;
 
   const worstWinRate = worstMatchup
     ? Math.round(
@@ -206,9 +205,9 @@ export function MatchupIntelligence({ data, opponentIdentity }: Props) {
             {/* Big percentage */}
             <div className="shrink-0">
               <p className="font-mono text-8xl font-bold leading-none text-accent">
-                {bestWinRate}%
+                {bestLossRate}%
               </p>
-              <p className="font-mono text-xs text-muted-fg mt-2">opponent win rate</p>
+              <p className="font-mono text-xs text-muted-fg mt-2">{opponentName} loss rate</p>
             </div>
 
             <div className="w-px self-stretch bg-accent/20" />
@@ -260,13 +259,13 @@ export function MatchupIntelligence({ data, opponentIdentity }: Props) {
           </p>
           <p className="text-[10px] text-muted-fg mb-1">
             <span className="text-accent font-mono font-bold">Green</span> = U Cluj ·{" "}
-            <span className="text-danger font-mono font-bold">Red</span> = opponent
+            <span className="text-danger font-mono font-bold">Red</span> = {opponentName}
           </p>
           <div className="flex-1">
             <TacticalRadar
               opponentStats={opponentIdentity}
               fcuStats={data.fcu_tactical_profile}
-              opponentName="Opponent"
+              opponentName={opponentName}
             />
           </div>
         </div>
@@ -311,7 +310,7 @@ export function MatchupIntelligence({ data, opponentIdentity }: Props) {
       {/* Archetype breakdown */}
       <div>
         <p className="text-xs text-muted-fg uppercase tracking-widest font-mono mb-3">
-          Opponent win rate against every playing style
+          {opponentName} win rate against every playing style
         </p>
         <div className="flex gap-3 overflow-x-auto pb-1">
           {data.archetypes.map((record) => (

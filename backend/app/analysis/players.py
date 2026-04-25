@@ -165,18 +165,23 @@ async def compute_player_cards(
 
 
 def _build_threats(aggs) -> list[PlayerCard]:
+    all_active = [a for a in aggs if a.matches > 0]
     ranked = sorted(
-        (a for a in aggs if a.matches > 0),
+        all_active,
         key=lambda a: (a.goal_contributions, a.goals, a.minutes),
         reverse=True,
     )
+    total_ga = sum(a.goal_contributions for a in all_active)
+    high_threshold = max(1, round(total_ga * 0.15))
+    medium_threshold = max(1, round(total_ga * 0.07))
+
     out: list[PlayerCard] = []
     for a in ranked[:_MAX_THREATS]:
         if a.goal_contributions == 0:
             break  # not a real threat
-        if a.goal_contributions >= 8:
+        if a.goal_contributions >= high_threshold:
             level = "high"
-        elif a.goal_contributions >= 4:
+        elif a.goal_contributions >= medium_threshold:
             level = "medium"
         else:
             level = "low"
@@ -214,9 +219,10 @@ def _build_vulnerabilities(aggs) -> list[PlayerCard]:
     for a in ranked[:_MAX_VULNERABILITIES]:
         if a.vulnerability_score <= 0:
             break
-        if a.reds > 0 or a.yellows >= 5:
+        yellows_per_game = a.yellows / a.matches if a.matches else 0.0
+        if a.reds > 0 or yellows_per_game >= 0.20:
             level = "high"
-        elif a.yellows >= 3:
+        elif yellows_per_game >= 0.12:
             level = "medium"
         else:
             level = "low"
