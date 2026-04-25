@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { fetchDossier } from "@/lib/api";
+import { fetchDossier, fetchTeamPlayers } from "@/lib/api";
 import { FormPanel } from "@/components/dossier/FormPanel";
 import { IdentityCard } from "@/components/dossier/IdentityCard";
 import { MatchupIntelligence } from "@/components/dossier/MatchupIntelligence";
@@ -16,7 +16,10 @@ interface Props {
 
 export default async function DossierPage({ params }: Props) {
   const teamId = parseInt(params.teamId, 10);
-  const dossier = await fetchDossier(teamId);
+  const [dossier, roster] = await Promise.all([
+    fetchDossier(teamId),
+    fetchTeamPlayers(teamId).catch(() => []),
+  ]);
 
   return (
     <div id="dossier-content" className="max-w-7xl mx-auto px-4 py-8 space-y-6">
@@ -68,7 +71,7 @@ export default async function DossierPage({ params }: Props) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 print:grid-cols-1">
         <PlayerCards data={dossier.players} />
-        <GameStatePanel data={dossier.game_state} />
+        <GameStatePanel data={dossier.game_state} roster={roster} />
       </div>
 
       <section className="w-full">

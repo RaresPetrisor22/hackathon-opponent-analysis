@@ -11,6 +11,17 @@ class TeamSummary(BaseModel):
     logo_url: str | None = None
 
 
+class PlayerSummary(BaseModel):
+    id: int
+    api_football_id: int | None = None
+    name: str
+    position: str | None = None
+    jersey_number: int | None = None
+    nationality: str | None = None
+    age: int | None = None
+    photo_url: str | None = None
+
+
 class MatchResult(BaseModel):
     fixture_id: int
     date: str | None
