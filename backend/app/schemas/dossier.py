@@ -23,6 +23,7 @@ class FormSection(BaseModel):
     goals_scored_avg: float
     goals_conceded_avg: float
     form_string: str  # e.g. "WWDLW"
+    llm_summary: str = ""
 
 
 # --- Tactical Identity ---
@@ -43,6 +44,7 @@ class IdentitySection(BaseModel):
     pressing_intensity: str  # "high" | "medium" | "low"
     play_style: str          # human label derived from stats
     notes: str
+    llm_summary: str = ""
 
 
 # --- Matchup Intelligence (hero feature) ---
@@ -67,6 +69,7 @@ class MatchupSection(BaseModel):
     prediction_summary: str
     best_archetype_vs_opponent: str
     fcu_tactical_profile: TacticalIdentityStats | None = None
+    llm_insight: str = ""
 
 
 # --- Player Threat & Vulnerability Cards ---
@@ -85,6 +88,7 @@ class PlayerCard(BaseModel):
 class PlayerCardsSection(BaseModel):
     key_threats: list[PlayerCard]
     defensive_vulnerabilities: list[PlayerCard]
+    llm_summary: str = ""
 
 
 # --- Game State Intelligence ---

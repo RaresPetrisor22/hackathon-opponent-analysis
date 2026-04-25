@@ -62,8 +62,11 @@ export function IdentityCard({ data }: Props) {
         <StatBar label="Corners" value={stats.avg_corners} max={10} unit="/game" />
       </div>
 
-      {data.notes && (
-        <p className="text-xs text-muted-fg border-t border-surface-2 pt-3">{data.notes}</p>
+      {(data.llm_summary || data.notes) && (
+        <div className="border-t border-surface-2 pt-3 space-y-1">
+          <p className="text-[10px] font-mono text-accent uppercase tracking-widest">Analyst Take</p>
+          <p className="text-xs text-white leading-relaxed">{data.llm_summary || data.notes}</p>
+        </div>
       )}
     </div>
   );

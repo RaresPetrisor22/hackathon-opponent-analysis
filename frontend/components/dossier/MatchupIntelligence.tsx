@@ -271,17 +271,27 @@ export function MatchupIntelligence({ data, opponentIdentity, opponentName }: Pr
         </div>
       </div>
 
-      {/* Prediction summary */}
-      {data.prediction_summary && (
-        <div className="rounded border border-surface-2 bg-surface-2/40 p-5">
-          <p className="text-[10px] font-mono text-muted-fg uppercase tracking-widest mb-3">
-            Matchup Insight
-          </p>
-          <div className="space-y-3 text-sm text-white leading-relaxed max-w-3xl">
-            {data.prediction_summary.split(/\n\s*\n/).map((para, i) => (
-              <p key={i}>{para.trim()}</p>
-            ))}
-          </div>
+      {/* Prediction summary + analyst take */}
+      {(data.prediction_summary || data.llm_insight) && (
+        <div className="rounded border border-surface-2 bg-surface-2/40 p-5 space-y-4">
+          {data.prediction_summary && (
+            <div>
+              <p className="text-[10px] font-mono text-muted-fg uppercase tracking-widest mb-3">
+                Matchup Insight
+              </p>
+              <div className="space-y-3 text-sm text-white leading-relaxed max-w-3xl">
+                {data.prediction_summary.split(/\n\s*\n/).map((para, i) => (
+                  <p key={i}>{para.trim()}</p>
+                ))}
+              </div>
+            </div>
+          )}
+          {data.llm_insight && (
+            <div className={data.prediction_summary ? "border-t border-surface-2 pt-4 space-y-1" : "space-y-1"}>
+              <p className="text-[10px] font-mono text-accent uppercase tracking-widest">Analyst Take</p>
+              <p className="text-sm text-white leading-relaxed max-w-3xl">{data.llm_insight}</p>
+            </div>
+          )}
         </div>
       )}
 

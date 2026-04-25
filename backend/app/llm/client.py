@@ -31,6 +31,47 @@ def _get_llm() -> ChatOpenAI:
     return _llm
 
 
+async def invoke_text(
+    prompt: ChatPromptTemplate, variables: dict[str, str]
+) -> str:
+    """Invoke an LLM prompt and return the plain text response.
+
+    For section-enrichment prompts that produce prose rather than structured
+    JSON. Uses the same retry policy as invoke_structured.
+    """
+    chain = prompt | _get_llm()
+    token_estimate = sum(len(v) for v in variables.values()) // 4
+
+    for attempt, delay in enumerate([0, *_RETRY_DELAYS]):
+        if delay:
+            await asyncio.sleep(delay)
+        t0 = time.monotonic()
+        try:
+            result = await chain.ainvoke(variables)
+            elapsed = time.monotonic() - t0
+            logger.info(
+                "LLM text call succeeded model=%s elapsed=%.2fs tokens_est=%d",
+                settings.openai_model,
+                elapsed,
+                token_estimate,
+            )
+            return str(result.content)
+        except Exception as exc:
+            elapsed = time.monotonic() - t0
+            is_rate_limit = "rate" in str(exc).lower() or "429" in str(exc)
+            logger.warning(
+                "LLM text call failed attempt=%d/%d elapsed=%.2fs error=%s",
+                attempt + 1,
+                len(_RETRY_DELAYS) + 1,
+                elapsed,
+                exc,
+            )
+            if not is_rate_limit or attempt == len(_RETRY_DELAYS):
+                raise
+
+    raise RuntimeError("invoke_text: exceeded retries")
+
+
 async def invoke_structured(system: str, user: str, schema: type[T]) -> T:
     """Send a chat completion and parse the response into a Pydantic model.
 
