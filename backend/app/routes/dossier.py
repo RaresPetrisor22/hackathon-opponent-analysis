@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
 from app.llm.orchestrator import generate_dossier
+from app.mock import build_mock_dossier
+from app.models.team import Team
 from app.schemas.dossier import DossierResponse
 
 router = APIRouter()
@@ -19,6 +22,9 @@ async def get_dossier(
     try:
         return await generate_dossier(team_id, session)
     except NotImplementedError:
-        raise HTTPException(status_code=501, detail="Dossier generation not yet implemented.")
+        result = await session.execute(select(Team).where(Team.id == team_id))
+        team = result.scalar_one_or_none()
+        team_name = team.name if team else f"Team {team_id}"
+        return build_mock_dossier(team_id, team_name)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
