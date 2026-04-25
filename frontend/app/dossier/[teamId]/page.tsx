@@ -48,13 +48,13 @@ export default async function DossierPage({ params }: Props) {
       </div>
 
       {/* Main grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 print:grid-cols-1">
         <FormPanel data={dossier.form} />
         <IdentityCard data={dossier.identity} />
         <RefereeCard data={dossier.referee} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 print:grid-cols-1">
         <PlayerCards data={dossier.players} />
         <GameStatePanel data={dossier.game_state} />
       </div>

@@ -48,6 +48,12 @@ body {
 
 /* Print / PDF export */
 @media print {
+  /* Force background/color rendering in all browsers */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
   .no-print {
     display: none !important;
   }
@@ -59,16 +65,10 @@ body {
   body {
     background-color: #0a0e1a !important;
     color: #f9fafb !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
   }
 
-  .grid {
-    display: block !important;
-  }
-
-  .grid > * {
-    margin-bottom: 1rem;
+  /* Keep cards intact across pages */
+  .rounded {
     break-inside: avoid;
   }
 
@@ -76,7 +76,7 @@ body {
     break-inside: avoid;
   }
 
-  /* Force a page break before the gameplan section */
+  /* Gameplan narrative gets its own page */
   section:last-of-type {
     break-before: page;
   }
