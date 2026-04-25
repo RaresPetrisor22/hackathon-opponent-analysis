@@ -11,6 +11,8 @@ Run with:
 
 from __future__ import annotations
 
+import json
+from datetime import datetime, timezone
 from typing import Any
 
 import pytest
@@ -182,3 +184,208 @@ class TestGenerateDossier:
         for key in ("form", "identity", "matchups", "players",
                     "game_state", "referee"):
             assert f'"{key}"' in inputs["full_dossier_json"]
+
+
+class TestEmptySectionFallbacks:
+    """The two stub modules return empty sections via private helpers."""
+
+    def test_empty_players_section_shape(self) -> None:
+        s = orchestrator._empty_players_section()
+        assert isinstance(s, PlayerCardsSection)
+        assert s.key_threats == []
+        assert s.defensive_vulnerabilities == []
+
+    def test_empty_referee_section_shape(self) -> None:
+        s = orchestrator._empty_referee_section()
+        assert isinstance(s, RefereeSection)
+        assert s.referee_name is None
+        assert s.total_matches == 0
+        assert s.avg_yellow_cards == 0.0
+        assert s.avg_red_cards == 0.0
+        assert s.avg_fouls_called == 0.0
+        assert s.home_advantage_factor is None
+        assert "not yet implemented" in s.notes
+
+
+class TestExceptionPropagation:
+    """Only NotImplementedError from players/referee is swallowed.
+
+    Other exceptions — and exceptions from other modules — must surface
+    so the route returns a real 500 instead of silently shipping garbage.
+    """
+
+    @pytest.mark.asyncio
+    async def test_form_runtime_error_propagates(
+        self, session, patch_pipeline, monkeypatch
+    ) -> None:
+        opp = Team(api_football_id=1, name="X")
+        session.add(opp)
+        await session.flush()
+
+        async def boom(team_id, session):
+            raise RuntimeError("form blew up")
+
+        monkeypatch.setattr(orchestrator.form, "compute_form", boom)
+        with pytest.raises(RuntimeError, match="form blew up"):
+            await orchestrator.generate_dossier(opp.id, session)
+
+    @pytest.mark.asyncio
+    async def test_matchups_error_propagates(
+        self, session, patch_pipeline, monkeypatch
+    ) -> None:
+        opp = Team(api_football_id=1, name="X")
+        session.add(opp)
+        await session.flush()
+
+        async def boom(team_id, fcu_id, session):
+            raise RuntimeError("matchups blew up")
+
+        monkeypatch.setattr(orchestrator.matchups, "predict_matchup", boom)
+        with pytest.raises(RuntimeError, match="matchups blew up"):
+            await orchestrator.generate_dossier(opp.id, session)
+
+    @pytest.mark.asyncio
+    async def test_players_non_notimpl_error_propagates(
+        self, session, patch_pipeline, monkeypatch
+    ) -> None:
+        """NotImplementedError is the only swallowed case for players."""
+        opp = Team(api_football_id=1, name="X")
+        session.add(opp)
+        await session.flush()
+
+        async def boom(team_id, session):
+            raise RuntimeError("players truly broken")
+
+        monkeypatch.setattr(orchestrator.players, "compute_player_cards", boom)
+        with pytest.raises(RuntimeError, match="players truly broken"):
+            await orchestrator.generate_dossier(opp.id, session)
+
+    @pytest.mark.asyncio
+    async def test_referee_non_notimpl_error_propagates(
+        self, session, patch_pipeline, monkeypatch
+    ) -> None:
+        opp = Team(api_football_id=1, name="X")
+        session.add(opp)
+        await session.flush()
+
+        async def boom(referee_name, league_id, season, session):
+            raise RuntimeError("referee truly broken")
+
+        monkeypatch.setattr(orchestrator.referee, "compute_referee_context", boom)
+        with pytest.raises(RuntimeError, match="referee truly broken"):
+            await orchestrator.generate_dossier(opp.id, session)
+
+
+class TestStageOrdering:
+    """Stage 2 (LLM) must never start before Stage 1 (analysis) finishes."""
+
+    @pytest.mark.asyncio
+    async def test_gameplan_chain_invoked_after_all_sections_ready(
+        self, session, monkeypatch
+    ) -> None:
+        opp = Team(api_football_id=7, name="Farul")
+        session.add(opp)
+        await session.flush()
+
+        events: list[str] = []
+
+        async def fake_form(team_id, session):
+            events.append("form")
+            return _stub_form()
+
+        async def fake_identity(team_id, session):
+            events.append("identity")
+            return _stub_identity()
+
+        async def fake_matchups(team_id, fcu_id, session):
+            events.append("matchups")
+            return _stub_matchups()
+
+        async def fake_game_state(team_id, session):
+            events.append("game_state")
+            return _stub_game_state()
+
+        class OrderedFakeChain:
+            async def ainvoke(self, inputs):
+                events.append("gameplan")
+                return GameplanNarrative(headline="h", body="b", key_actions=[])
+
+        monkeypatch.setattr(orchestrator.form, "compute_form", fake_form)
+        monkeypatch.setattr(orchestrator.identity, "compute_identity", fake_identity)
+        monkeypatch.setattr(orchestrator.matchups, "predict_matchup", fake_matchups)
+        monkeypatch.setattr(
+            orchestrator.game_state, "compute_game_state", fake_game_state
+        )
+        monkeypatch.setattr(orchestrator, "_build_gameplan_chain", OrderedFakeChain)
+
+        await orchestrator.generate_dossier(opp.id, session)
+
+        # gameplan must appear last; all four real analysis modules must
+        # have run before it (players + referee fall through to empty
+        # without being recorded here, which is fine).
+        assert events[-1] == "gameplan"
+        assert {"form", "identity", "matchups", "game_state"}.issubset(set(events[:-1]))
+
+
+class TestResponseShape:
+    @pytest.mark.asyncio
+    async def test_generated_at_is_iso_utc(
+        self, session, patch_pipeline
+    ) -> None:
+        opp = Team(api_football_id=99, name="Petrolul")
+        session.add(opp)
+        await session.flush()
+
+        result = await orchestrator.generate_dossier(opp.id, session)
+        # Must round-trip through datetime.fromisoformat and be tz-aware.
+        parsed = datetime.fromisoformat(result.generated_at)
+        assert parsed.tzinfo is not None
+        # Should be within a tight window of "now" — generously 30s.
+        delta = abs((datetime.now(timezone.utc) - parsed).total_seconds())
+        assert delta < 30
+
+    @pytest.mark.asyncio
+    async def test_dossier_json_is_valid_serialised_payload(
+        self, session, patch_pipeline
+    ) -> None:
+        """The JSON handed to the LLM must be parseable and contain dicts."""
+        opp = Team(api_football_id=11, name="UTA Arad")
+        session.add(opp)
+        await session.flush()
+
+        await orchestrator.generate_dossier(opp.id, session)
+
+        payload = json.loads(patch_pipeline.last_inputs["full_dossier_json"])
+        assert set(payload.keys()) == {
+            "form", "identity", "matchups", "players", "game_state", "referee"
+        }
+        for v in payload.values():
+            assert isinstance(v, dict)
+
+
+class TestRouteValueErrorMapping:
+    """Route translates ValueError -> 404 instead of 500."""
+
+    @pytest.mark.asyncio
+    async def test_route_returns_404_for_unknown_team(
+        self, session, patch_pipeline, monkeypatch
+    ) -> None:
+        from fastapi import FastAPI
+        from httpx import ASGITransport, AsyncClient
+
+        from app.db import get_session
+        from app.routes.dossier import router
+
+        app = FastAPI()
+        app.include_router(router, prefix="/dossier")
+
+        async def override_session():
+            yield session
+
+        app.dependency_overrides[get_session] = override_session
+
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://t") as c:
+            r = await c.get("/dossier/9999")
+        assert r.status_code == 404
+        assert "not found" in r.json()["detail"]
