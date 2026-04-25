@@ -15,40 +15,12 @@ from app.schemas.dossier import DossierResponse
 
 router = APIRouter()
 
-_CACHE_DIR = Path(__file__).resolve().parents[3] / "data" / "dossier_cache"
-_CACHE_TTL = timedelta(hours=24)
-
-
-def _cache_path(team_id: int) -> Path:
-    return _CACHE_DIR / f"{team_id}.json"
-
-
-def _read_cache(team_id: int) -> DossierResponse | None:
-    path = _cache_path(team_id)
-    if not path.exists():
-        return None
-    age = datetime.now(timezone.utc) - datetime.fromtimestamp(
-        path.stat().st_mtime, tz=timezone.utc
-    )
-    if age > _CACHE_TTL:
-        return None
-    return DossierResponse.model_validate_json(path.read_text(encoding="utf-8"))
-
-
-def _write_cache(team_id: int, dossier: DossierResponse) -> None:
-    _CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    _cache_path(team_id).write_text(dossier.model_dump_json(), encoding="utf-8")
-
-
 @router.get("/{team_id}", response_model=DossierResponse)
 async def get_dossier(
     team_id: int,
     session: AsyncSession = Depends(get_session),
 ) -> DossierResponse:
     """Generate and return the full pre-match dossier for the given opponent team."""
-    cached = _read_cache(team_id)
-    if cached is not None:
-        return cached
 
     try:
         dossier = await generate_dossier(team_id, session)
@@ -62,5 +34,4 @@ async def get_dossier(
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
-    _write_cache(team_id, dossier)
     return dossier
