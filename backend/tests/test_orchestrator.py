@@ -126,10 +126,14 @@ def patch_pipeline(monkeypatch):
     async def fake_game_state(team_id, session):
         return _stub_game_state()
 
+    async def fake_players(team_id, session):
+        return PlayerCardsSection(key_threats=[], defensive_vulnerabilities=[])
+
     monkeypatch.setattr(orchestrator.form, "compute_form", fake_form)
     monkeypatch.setattr(orchestrator.identity, "compute_identity", fake_identity)
     monkeypatch.setattr(orchestrator.matchups, "predict_matchup", fake_matchups)
     monkeypatch.setattr(orchestrator.game_state, "compute_game_state", fake_game_state)
+    monkeypatch.setattr(orchestrator.players, "compute_player_cards", fake_players)
     monkeypatch.setattr(orchestrator, "_build_gameplan_chain", lambda: fake_chain)
     return fake_chain
 
@@ -159,8 +163,8 @@ class TestGenerateDossier:
         assert result.identity is not None
         assert result.matchups is not None
         assert result.game_state is not None
-        # players still falls back to an empty section (NotImplementedError
-        # caught in orchestrator). referee runs live now and, with no
+        # players + referee both run live. The fake players stub returns
+        # an empty section; referee runs the real module which, with no
         # upcoming-fixture lookup yet, returns the unassigned-referee stub.
         assert result.players.key_threats == []
         assert result.referee.referee_name is None
@@ -187,21 +191,10 @@ class TestGenerateDossier:
             assert f'"{key}"' in inputs["full_dossier_json"]
 
 
-class TestEmptySectionFallbacks:
-    """The two stub modules return empty sections via private helpers."""
-
-    def test_empty_players_section_shape(self) -> None:
-        s = orchestrator._empty_players_section()
-        assert isinstance(s, PlayerCardsSection)
-        assert s.key_threats == []
-        assert s.defensive_vulnerabilities == []
-
 class TestExceptionPropagation:
-    """Only NotImplementedError from players/referee is swallowed.
-
-    Other exceptions — and exceptions from other modules — must surface
-    so the route returns a real 500 instead of silently shipping garbage.
-    """
+    """All analysis-module errors must surface so the route returns a real
+    500 instead of silently shipping garbage. Every module is implemented
+    now — no NotImplementedError swallowing remains."""
 
     @pytest.mark.asyncio
     async def test_form_runtime_error_propagates(
@@ -234,10 +227,9 @@ class TestExceptionPropagation:
             await orchestrator.generate_dossier(opp.id, session)
 
     @pytest.mark.asyncio
-    async def test_players_non_notimpl_error_propagates(
+    async def test_players_error_propagates(
         self, session, patch_pipeline, monkeypatch
     ) -> None:
-        """NotImplementedError is the only swallowed case for players."""
         opp = Team(api_football_id=1, name="X")
         session.add(opp)
         await session.flush()
@@ -250,7 +242,7 @@ class TestExceptionPropagation:
             await orchestrator.generate_dossier(opp.id, session)
 
     @pytest.mark.asyncio
-    async def test_referee_non_notimpl_error_propagates(
+    async def test_referee_error_propagates(
         self, session, patch_pipeline, monkeypatch
     ) -> None:
         opp = Team(api_football_id=1, name="X")

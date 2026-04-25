@@ -41,16 +41,6 @@ from app.schemas.dossier import (
 
 
 # ---------------------------------------------------------------------------
-# Graceful fallback — players.py is not yet implemented. Returning an empty
-# section keeps the dossier endpoint usable for demos while it's being
-# written. Remove once players.compute_player_cards is live.
-# ---------------------------------------------------------------------------
-
-def _empty_players_section() -> PlayerCardsSection:
-    return PlayerCardsSection(key_threats=[], defensive_vulnerabilities=[])
-
-
-# ---------------------------------------------------------------------------
 # Stage 1: Parallel Analysis Agents
 # Each lambda receives a context dict: {"team_id": int, "session": AsyncSession}
 # and returns the typed section object for that analysis domain.
@@ -75,10 +65,7 @@ def _build_parallel_stage(
         return await matchups.predict_matchup(team_id, settings.fcu_team_id, session)
 
     async def run_players(_: dict) -> PlayerCardsSection:
-        try:
-            return await players.compute_player_cards(team_id, session)
-        except NotImplementedError:
-            return _empty_players_section()
+        return await players.compute_player_cards(team_id, session)
 
     async def run_game_state(_: dict) -> GameStateSection:
         return await game_state.compute_game_state(team_id, session)
