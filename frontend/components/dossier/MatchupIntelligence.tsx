@@ -167,10 +167,23 @@ export function MatchupIntelligence({ data }: Props) {
                 </p>
               )}
             </div>
-            <p className="text-sm text-white leading-relaxed">{data.prediction_summary}</p>
           </div>
         </div>
       </div>
+
+      {/* Matchup insight — paragraphs separated by blank lines */}
+      {data.prediction_summary && (
+        <div className="rounded border border-surface-2 bg-surface-2/40 p-5">
+          <p className="text-[10px] font-mono text-muted-fg uppercase tracking-widest mb-3">
+            Matchup insight
+          </p>
+          <div className="space-y-3 text-sm text-white leading-relaxed max-w-3xl">
+            {data.prediction_summary.split(/\n\s*\n/).map((para, i) => (
+              <p key={i}>{para.trim()}</p>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Strengths & weaknesses */}
       <div className="grid grid-cols-2 gap-4">
