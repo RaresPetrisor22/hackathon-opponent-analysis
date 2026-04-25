@@ -26,6 +26,105 @@ const API_URL =
     : "http://localhost:8000";
 
 /* ------------------------------------------------------------------ */
+/*  Markdown-lite renderer for assistant messages                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Renders a lightweight subset of markdown:
+ *  - **bold**
+ *  - Bullet lines (• or -)
+ *  - Blank-line paragraph separation
+ *  - Emoji section prefixes get a subtle highlight
+ */
+function renderMarkdown(text: string): React.ReactNode[] {
+  const paragraphs = text.split(/\n{2,}/);
+
+  return paragraphs.map((para, pi) => {
+    const lines = para.split("\n");
+    const isBulletBlock = lines.every(
+      (l) => /^\s*[•\-\*]\s/.test(l) || l.trim() === ""
+    );
+
+    if (isBulletBlock) {
+      const bullets = lines.filter((l) => l.trim() !== "");
+      return (
+        <div key={pi} style={{ margin: "6px 0" }}>
+          {bullets.map((b, bi) => {
+            const content = b.replace(/^\s*[•\-\*]\s*/, "");
+            return (
+              <div
+                key={bi}
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  alignItems: "flex-start",
+                  marginBottom: 4,
+                  lineHeight: 1.55,
+                }}
+              >
+                <span
+                  style={{
+                    color: "#00ff88",
+                    flexShrink: 0,
+                    fontWeight: 700,
+                    fontSize: 10,
+                    marginTop: 4,
+                  }}
+                >
+                  ●
+                </span>
+                <span>{renderInline(content)}</span>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    // Regular paragraph
+    return (
+      <p key={pi} style={{ margin: "6px 0", lineHeight: 1.6 }}>
+        {lines.map((line, li) => (
+          <React.Fragment key={li}>
+            {li > 0 && <br />}
+            {renderInline(line)}
+          </React.Fragment>
+        ))}
+      </p>
+    );
+  });
+}
+
+/** Render inline markdown: **bold** */
+function renderInline(text: string): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  const regex = /\*\*(.+?)\*\*/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    parts.push(
+      <strong
+        key={match.index}
+        style={{ color: "#00ff88", fontWeight: 600 }}
+      >
+        {match[1]}
+      </strong>
+    );
+    lastIndex = regex.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
@@ -151,9 +250,9 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
           bottom: 100,
           right: 28,
           zIndex: 9998,
-          width: 400,
+          width: 420,
           maxWidth: "calc(100vw - 32px)",
-          height: 520,
+          height: 560,
           maxHeight: "calc(100vh - 140px)",
           background: "#111827",
           border: "1px solid #1c2333",
@@ -226,16 +325,71 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
                 alignItems: "center",
                 justifyContent: "center",
                 height: "100%",
-                gap: 12,
-                opacity: 0.5,
+                gap: 16,
+                opacity: 0.6,
               }}
             >
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-              <p style={{ color: "#9ca3af", fontSize: 13, textAlign: "center", maxWidth: 240, lineHeight: 1.5 }}>
-                Ask anything about this opponent&apos;s dossier — tactics, key players, form, weaknesses…
-              </p>
+              <div
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, rgba(0,255,136,.12) 0%, rgba(0,255,136,.04) 100%)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <p style={{ color: "#e5e7eb", fontSize: 14, fontWeight: 500, marginBottom: 4 }}>
+                  Scouting Assistant
+                </p>
+                <p style={{ color: "#6b7280", fontSize: 12, maxWidth: 260, lineHeight: 1.5 }}>
+                  Ask about tactics, key players, form, weaknesses, or any dossier insight.
+                </p>
+              </div>
+              {/* Quick suggestion chips */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center", maxWidth: 300 }}>
+                {[
+                  "Key players?",
+                  "Weaknesses?",
+                  "Formation?",
+                  "Recent form?",
+                ].map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    onClick={() => {
+                      setInput(suggestion);
+                      inputRef.current?.focus();
+                    }}
+                    style={{
+                      background: "rgba(0,255,136,.08)",
+                      border: "1px solid rgba(0,255,136,.15)",
+                      borderRadius: 20,
+                      padding: "5px 12px",
+                      color: "#00ff88",
+                      fontSize: 11,
+                      cursor: "pointer",
+                      fontFamily: "'Inter', system-ui, sans-serif",
+                      transition: "all .2s",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "rgba(0,255,136,.15)";
+                      e.currentTarget.style.borderColor = "rgba(0,255,136,.3)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "rgba(0,255,136,.08)";
+                      e.currentTarget.style.borderColor = "rgba(0,255,136,.15)";
+                    }}
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -245,49 +399,103 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
               style={{
                 display: "flex",
                 justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
+                gap: 8,
+                alignItems: "flex-end",
+                animation: "chatFadeIn .3s ease-out",
               }}
             >
+              {/* Assistant avatar */}
+              {msg.role === "assistant" && (
+                <div
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 8,
+                    background: "linear-gradient(135deg, #00ff88 0%, #00cc6a 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    marginBottom: 2,
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0a0e1a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                  </svg>
+                </div>
+              )}
+
               <div
                 style={{
-                  maxWidth: "82%",
-                  padding: "10px 14px",
-                  borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+                  maxWidth: "80%",
+                  padding: msg.role === "user" ? "10px 14px" : "12px 16px",
+                  borderRadius:
+                    msg.role === "user"
+                      ? "14px 14px 4px 14px"
+                      : "4px 14px 14px 14px",
                   background:
                     msg.role === "user"
                       ? "linear-gradient(135deg, #00ff88 0%, #00cc6a 100%)"
                       : "#1c2333",
-                  color: msg.role === "user" ? "#0a0e1a" : "#f9fafb",
+                  color: msg.role === "user" ? "#0a0e1a" : "#e5e7eb",
                   fontSize: 13,
                   lineHeight: 1.55,
                   fontWeight: msg.role === "user" ? 500 : 400,
-                  whiteSpace: "pre-wrap",
                   wordBreak: "break-word",
+                  ...(msg.role === "assistant"
+                    ? {
+                        borderLeft: "2px solid rgba(0,255,136,.25)",
+                      }
+                    : {}),
                 }}
               >
-                {msg.content}
+                {msg.role === "assistant"
+                  ? renderMarkdown(msg.content)
+                  : msg.content}
               </div>
             </div>
           ))}
 
           {/* Typing indicator */}
           {loading && (
-            <div style={{ display: "flex", justifyContent: "flex-start" }}>
+            <div style={{ display: "flex", justifyContent: "flex-start", gap: 8, alignItems: "flex-end" }}>
+              <div
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 8,
+                  background: "linear-gradient(135deg, #00ff88 0%, #00cc6a 100%)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  marginBottom: 2,
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0a0e1a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg>
+              </div>
               <div
                 style={{
                   padding: "12px 18px",
-                  borderRadius: "14px 14px 14px 4px",
+                  borderRadius: "4px 14px 14px 14px",
                   background: "#1c2333",
+                  borderLeft: "2px solid rgba(0,255,136,.25)",
                   display: "flex",
                   gap: 5,
                   alignItems: "center",
                 }}
               >
+                <span style={{ color: "#9ca3af", fontSize: 12, marginRight: 6 }}>Analyzing</span>
                 {[0, 1, 2].map((j) => (
                   <span
                     key={j}
                     style={{
-                      width: 7,
-                      height: 7,
+                      width: 6,
+                      height: 6,
                       borderRadius: "50%",
                       background: "#00ff88",
                       display: "inline-block",
@@ -376,11 +584,32 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
         </div>
       </div>
 
-      {/* ---- Bounce animation keyframes ---- */}
+      {/* ---- Animations ---- */}
       <style jsx global>{`
         @keyframes chatBounce {
           0%, 60%, 100% { transform: translateY(0); opacity: .4; }
           30% { transform: translateY(-6px); opacity: 1; }
+        }
+        @keyframes chatFadeIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        #chat-panel::-webkit-scrollbar,
+        #chat-panel *::-webkit-scrollbar {
+          width: 4px;
+        }
+        #chat-panel::-webkit-scrollbar-track,
+        #chat-panel *::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        #chat-panel::-webkit-scrollbar-thumb,
+        #chat-panel *::-webkit-scrollbar-thumb {
+          background: rgba(0,255,136,.15);
+          border-radius: 4px;
+        }
+        #chat-panel::-webkit-scrollbar-thumb:hover,
+        #chat-panel *::-webkit-scrollbar-thumb:hover {
+          background: rgba(0,255,136,.3);
         }
       `}</style>
     </>
