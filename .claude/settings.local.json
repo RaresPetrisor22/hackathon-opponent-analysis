@@ -16,7 +16,11 @@
       "Bash(iconv -f utf-8 -t ascii//TRANSLIT)",
       "Bash(npm install *)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(uv add *)",
+      "Bash(powershell -Command \"Get-Process python -ErrorAction SilentlyContinue | Format-Table Id, StartTime, ProcessName\")",
+      "Bash(powershell *)",
+      "Bash(echo \"exit=$?\")"
     ]
   }
 }

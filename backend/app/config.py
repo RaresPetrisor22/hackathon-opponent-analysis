@@ -17,6 +17,7 @@ class Settings(BaseSettings):
 
     api_football_key: str = ""
     openai_api_key: str = ""
+    pinecone_api_key: str = ""
     openai_model: str = "gpt-4o"
     database_url: str = "sqlite+aiosqlite:///./data/app.db"
 

@@ -24,7 +24,7 @@ from langchain_core.runnables import RunnableLambda, RunnableParallel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.analysis import form, game_state, identity, matchups, players, referee
+from app.analysis import form, game_state, identity, matchups, media_intel, players, referee
 from app.config import settings
 from app.llm.client import _get_llm, invoke_text
 from app.llm.prompts import (
@@ -42,6 +42,7 @@ from app.schemas.dossier import (
     GameplanNarrative,
     IdentitySection,
     MatchupSection,
+    MediaIntelligence,
     PlayerCardsSection,
     RefereeSection,
 )
@@ -54,7 +55,7 @@ from app.schemas.dossier import (
 # ---------------------------------------------------------------------------
 
 def _build_parallel_stage(
-    team_id: int, session: AsyncSession
+    team_id: int, api_football_id: int, session: AsyncSession
 ) -> RunnableParallel:  # type: ignore[type-arg]
     """Wire up the six analysis modules as concurrent runnables.
 
@@ -85,6 +86,10 @@ def _build_parallel_stage(
             None, settings.superliga_league_id, settings.superliga_season, session
         )
 
+    async def run_media_intel(_: dict) -> MediaIntelligence:
+        # Pinecone vectors are keyed on api_football_id, not the internal DB id
+        return await media_intel.get_media_intel(api_football_id)
+
     return RunnableParallel(
         form=RunnableLambda(run_form),
         identity=RunnableLambda(run_identity),
@@ -92,6 +97,7 @@ def _build_parallel_stage(
         players=RunnableLambda(run_players),
         game_state=RunnableLambda(run_game_state),
         referee=RunnableLambda(run_referee),
+        media_intel=RunnableLambda(run_media_intel),
     )
 
 
@@ -175,7 +181,7 @@ async def generate_dossier(
     opponent_name = opponent.name
 
     # ---- Stage 1: Parallel Analysis Agents --------------------------------
-    parallel = _build_parallel_stage(opponent_team_id, session)
+    parallel = _build_parallel_stage(opponent_team_id, opponent.api_football_id, session)
     sections = await parallel.ainvoke({})
 
     form_section: FormSection = sections["form"]
@@ -184,6 +190,7 @@ async def generate_dossier(
     players_section: PlayerCardsSection = sections["players"]
     game_state_section: GameStateSection = sections["game_state"]
     referee_section: RefereeSection = sections["referee"]
+    media_intel_section: MediaIntelligence = sections["media_intel"]
 
     # ---- Stage 1.5: Section Enrichment ------------------------------------
     (
@@ -205,6 +212,7 @@ async def generate_dossier(
             "players": players_section.model_dump(),
             "game_state": game_state_section.model_dump(),
             "referee": referee_section.model_dump(),
+            "media_intel": media_intel_section.model_dump(),
         },
         default=str,
     )
@@ -228,5 +236,6 @@ async def generate_dossier(
         players=players_section,
         game_state=game_state_section,
         referee=referee_section,
+        media_intel=media_intel_section,
         gameplan=gameplan,
     )
