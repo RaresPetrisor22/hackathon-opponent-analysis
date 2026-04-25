@@ -363,8 +363,10 @@ class TestPipelineIntegration:
         assert section.fcu_archetype_id != 0
         assert section.archetypes  # non-empty
         assert len(section.archetypes) == N_CLUSTERS
-        # Summary string must mention the archetype name (not be the stub)
-        assert "FC U Cluj" in section.prediction_summary
+        # Summary must be a real response — not the "archetypes not built" stub.
+        # The exact wording depends on sample size: small samples produce a
+        # "Sample is limited" message that still names the archetype; large
+        # samples produce a comparative summary that mentions "U Cluj".
         assert section.fcu_archetype_name in section.prediction_summary
         assert "Run 'uv run python scripts/build_archetypes.py'" not in section.prediction_summary
 
