@@ -9,6 +9,17 @@ export interface TeamSummary {
   logo_url: string | null;
 }
 
+export interface PlayerSummary {
+  id: number;
+  api_football_id: number | null;
+  name: string;
+  position: string | null;
+  jersey_number: number | null;
+  nationality: string | null;
+  age: number | null;
+  photo_url: string | null;
+}
+
 // --- Form ---
 
 export interface MatchFormEntry {
