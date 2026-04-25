@@ -72,6 +72,7 @@ export interface MatchupSection {
   fcu_archetype_name: string;
   prediction_summary: string;
   best_archetype_vs_opponent: string;
+  fcu_tactical_profile: TacticalIdentityStats | null;
 }
 
 // --- Players ---

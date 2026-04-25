@@ -18,20 +18,33 @@ export default async function DossierPage({ params }: Props) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">{dossier.opponent_name}</h1>
-          <p className="text-muted-fg text-xs font-mono mt-1">
+      {/* Page header */}
+      <div className="flex items-start justify-between">
+        <div className="space-y-1">
+          <p className="text-[10px] font-mono text-accent uppercase tracking-widest">
+            Pre-Match Dossier · FC Universitatea Cluj
+          </p>
+          <h1 className="text-3xl font-bold text-white">{dossier.opponent_name}</h1>
+          <p className="text-muted-fg text-xs font-mono">
             Generated {new Date(dossier.generated_at).toLocaleString()}
           </p>
         </div>
         <PrintButton />
       </div>
 
-      {/* Hero row */}
+      {/* Hero section */}
       <section className="w-full">
-        <MatchupIntelligence data={dossier.matchups} />
+        <MatchupIntelligence data={dossier.matchups} opponentIdentity={dossier.identity.stats} />
       </section>
+
+      {/* Supporting analysis divider */}
+      <div className="flex items-center gap-4 pt-2">
+        <div className="h-px flex-1 bg-surface-2" />
+        <span className="text-[10px] font-mono text-muted-fg uppercase tracking-widest">
+          Supporting Analysis
+        </span>
+        <div className="h-px flex-1 bg-surface-2" />
+      </div>
 
       {/* Main grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

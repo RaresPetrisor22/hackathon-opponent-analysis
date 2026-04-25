@@ -41,10 +41,11 @@ from sklearn.preprocessing import StandardScaler
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.analysis.identity import compute_identity
 from app.models.archetype import Archetype
 from app.models.match import Match
 from app.models.team import Team
-from app.schemas.dossier import ArchetypeRecord, MatchupSection
+from app.schemas.dossier import ArchetypeRecord, MatchupSection, TacticalIdentityStats
 
 FEATURE_COLS = [
     "possession_pct",
@@ -619,10 +620,19 @@ async def predict_matchup(
         stub_summary=_stub_summary,
     )
 
+    fcu_tactical_profile: TacticalIdentityStats | None = None
+    if fcu_internal_id is not None:
+        try:
+            fcu_identity = await compute_identity(fcu_internal_id, session)
+            fcu_tactical_profile = fcu_identity.stats
+        except Exception:
+            pass
+
     return MatchupSection(
         archetypes=opp_records,
         fcu_archetype_id=fcu_archetype_id,
         fcu_archetype_name=fcu_archetype_name,
         prediction_summary=summary,
         best_archetype_vs_opponent=best_arch_name,
+        fcu_tactical_profile=fcu_tactical_profile,
     )

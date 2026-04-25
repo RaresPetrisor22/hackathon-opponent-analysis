@@ -66,6 +66,7 @@ class MatchupSection(BaseModel):
     fcu_archetype_name: str
     prediction_summary: str
     best_archetype_vs_opponent: str
+    fcu_tactical_profile: TacticalIdentityStats | None = None
 
 
 # --- Player Threat & Vulnerability Cards ---
