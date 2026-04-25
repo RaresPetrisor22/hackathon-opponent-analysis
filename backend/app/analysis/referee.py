@@ -24,6 +24,9 @@ async def compute_referee_context(
         league_id: API-Football league ID.
         season: Season year.
         session: Async SQLAlchemy session.
+
+    Query filter: always apply Match.complete() — five fixtures have no stats
+    from the API and must be excluded to keep results consistent.
     """
-    # TODO: implement
+    # TODO: implement — use .where(Match.complete()) in all DB queries
     raise NotImplementedError

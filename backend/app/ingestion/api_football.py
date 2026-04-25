@@ -39,11 +39,9 @@ class ApiFootballClient:
         path.parent.mkdir(parents=True, exist_ok=True)
         return path
 
-    # Free tier allows 10 requests/minute. We throttle each uncached call to stay
-    # below that; override via env var API_FOOTBALL_THROTTLE_SECONDS if on a paid plan.
-    _THROTTLE_SECONDS = 6.5
-    # Generous backoff for 429s — per-minute quotas can need a full minute to reset.
-    _BACKOFF_SECONDS = [5, 15, 30, 60, 60]
+    # Pro plan allows 300 requests/minute (5/sec). Stay slightly under that.
+    _THROTTLE_SECONDS = 0.25
+    _BACKOFF_SECONDS = [2, 5, 10, 30, 60]
 
     async def _get(
         self,
@@ -68,7 +66,7 @@ class ApiFootballClient:
                 cache_file.write_text(
                     json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
                 )
-                # Proactive throttle so the next uncached call stays under 10/min
+                # Proactive throttle to stay within rate limit
                 await asyncio.sleep(self._THROTTLE_SECONDS)
                 return data
         raise RuntimeError(f"Rate limited after retries: {endpoint}")

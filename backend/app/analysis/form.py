@@ -16,6 +16,9 @@ async def compute_form(team_id: int, session: AsyncSession, n: int = 10) -> Form
         team_id: Internal DB team ID.
         session: Async SQLAlchemy session.
         n: How many recent matches to fetch (at least 10 for both windows).
+
+    Query filter: always apply Match.complete() — five fixtures have no stats
+    from the API and must be excluded to keep results consistent.
     """
-    # TODO: implement
+    # TODO: implement — use .where(Match.complete()) in all DB queries
     raise NotImplementedError

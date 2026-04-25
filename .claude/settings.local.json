@@ -6,7 +6,9 @@
       "Bash(mv .env.example .env)",
       "Bash(git rm *)",
       "Bash(uv sync *)",
-      "Bash(uv run *)"
+      "Bash(uv run *)",
+      "Bash(python3 -c ' *)",
+      "Bash(python -c ' *)"
     ]
   }
 }
