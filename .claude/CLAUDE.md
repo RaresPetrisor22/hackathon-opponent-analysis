@@ -9,7 +9,7 @@ Opponent Dossier is a pre-match scouting tool for FC Universitatea Cluj (Romania
 ## Repository Layout
 
 - `backend/app/` — FastAPI app
-  - `routes/` — `health`, `teams`, `dossier` (mounted in `main.py`)
+  - `routes/` — `health`, `teams`, `dossier`, `referees` (mounted in `main.py`)
   - `schemas/` — Pydantic v2 request/response models (`common.py`, `dossier.py`)
   - `models/` — SQLAlchemy 2.0 ORM (`team`, `match`, `player`, `referee`, `standings`, `archetype`)
   - `ingestion/` — `api_football.py` (fetch + cache), `upserts.py`, `raw/` cache tree
@@ -17,6 +17,7 @@ Opponent Dossier is a pre-match scouting tool for FC Universitatea Cluj (Romania
   - `llm/` — `client.py` (single LLM gateway), `prompts.py` (all `ChatPromptTemplate`s), `orchestrator.py` (LangChain pipeline)
   - `mock.py` — demo/stub data fallback
 - `frontend/` — Next.js 14
+  - `app/page.tsx` — home page with opponent selector
   - `app/dossier/` — dossier page route
   - `components/dossier/` — one panel per section (`FormPanel`, `IdentityCard`, `MatchupIntelligence`, `PlayerCards`, `GameStatePanel`, `RefereeCard`, `GameplanNarrative`, `PrintButton`)
   - `components/charts/` — Recharts wrappers (`RadarFingerprint`)
@@ -56,7 +57,7 @@ No coordinate data. No heatmaps. No pressing zones. Everything is aggregated per
   - **Stage 1 — parallel analysis**: `RunnableParallel` of `RunnableLambda`s wrapping the six analysis modules (`form`, `identity`, `matchups`, `players`, `game_state`, `referee`). Pure DB reads, no LLM calls.
   - **Stage 2 — gameplan synthesis**: a single chain `GAMEPLAN_PROMPT | llm.with_structured_output(GameplanNarrative)` consumes all six section outputs serialised as JSON. This is the only LLM call in the pipeline.
   - Stage 2 never starts before Stage 1 completes. New analysis modules go into Stage 1's `RunnableParallel`; new LLM features either reuse the gameplan chain or use `client.invoke_structured` with a schema.
-- Archetype-based matchup intelligence is the core feature. `models/archetype.py` is a first-class entity; `analysis/matchups.py` predicts the matchup against `settings.fcu_team_id`.
+- Archetype-based matchup intelligence is the core feature. `models/archetype.py` is a first-class entity; `analysis/matchups.py` predicts the matchup against `settings.fcu_team_id`. The four archetype labels are: "Dominant Possession Elite", "Defensive / Low Output", "Long-Range Specialists", and "Counter-Attacking Pressing Side".
 - Romanian SuperLiga league ID for API-Football: **283**, season **2024** (see `app/config.py` — `superliga_league_id`, `superliga_season`). FCU team ID: **2599** (`fcu_team_id`). Confirm at runtime if upstream data changes.
 - Default LLM: `gpt-4o` (`settings.openai_model`), temperature 0.3. Override via env, not in code.
 - SQLite is intentional — no Docker, no Postgres. `database_url` defaults to `sqlite+aiosqlite:///./data/app.db`. `init_db()` runs `create_all` plus idempotent `ALTER TABLE` shims for late-added match columns.
@@ -74,6 +75,22 @@ No coordinate data. No heatmaps. No pressing zones. Everything is aggregated per
 - No emoji anywhere in the UI or in code comments.
 - Stats use `font-mono`; narrative text uses Inter.
 - No "AI-powered" badges, no chat bubbles, no SaaS-style marketing copy in the UI.
+
+## Referee Endpoints
+
+Two dedicated endpoints live in `backend/app/routes/referees.py` (mounted at `/referees`):
+- `GET /referees` — returns a sorted list of distinct referee names from completed SuperLiga 2024 matches.
+- `GET /referees/stats?name=...` — returns a full `RefereeSection` for the named referee, reusing `analysis/referee.py`.
+
+`RefereeCard` is a `"use client"` component with a live dropdown; selecting a referee fetches their stats and swaps the stat boxes. The assigned referee (from the dossier) is highlighted with an "assigned" badge.
+
+## Select Dropdown Behaviour
+
+All `SelectContent` instances must use `position="popper" side="bottom" sideOffset={4} avoidCollisions={false}` to prevent Radix UI from flipping the menu upward on smaller screens.
+
+## PDF Export
+
+`window.print()` is used for PDF export. Print styles live in `app/globals.css`. Outer layout grids use Tailwind's `print:grid-cols-1` variant to collapse to single-column — do **not** use `.grid { display: block }` as it breaks inner stat grids. All elements carry `* { print-color-adjust: exact }` to preserve dark backgrounds and accent colours.
 
 ## When in Doubt
 
