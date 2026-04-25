@@ -348,10 +348,6 @@ export function MatchupIntelligence({ data, opponentIdentity, opponentName }: Pr
             <StatBlock label="Goals scored/game" value={active.goals_for.toFixed(2)} />
             <StatBlock label="Goals conceded/game" value={active.goals_against.toFixed(2)} />
             <StatBlock
-              label="xG diff"
-              value={active.xg_diff != null ? active.xg_diff.toFixed(2) : "N/A"}
-            />
-            <StatBlock
               label="Win rate"
               value={
                 active.matches_played > 0

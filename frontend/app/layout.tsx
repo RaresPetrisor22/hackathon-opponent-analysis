@@ -3,7 +3,7 @@ import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Opponent Dossier — FC Universitatea Cluj",
+  title: "U-PPONENT ARCHIVE — FC Universitatea Cluj",
   description: "Pre-match scouting intelligence for the coaching staff.",
 };
 
@@ -20,7 +20,7 @@ export default function RootLayout({
             FC Universitatea Cluj
           </Link>
           <span className="text-muted-fg text-sm">/</span>
-          <span className="text-muted-fg text-sm">Opponent Dossier</span>
+          <span className="text-muted-fg text-sm">U-PPONENT ARCHIVE</span>
         </header>
         <main>{children}</main>
       </body>
