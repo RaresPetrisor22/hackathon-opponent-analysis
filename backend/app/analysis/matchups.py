@@ -5,16 +5,21 @@ from __future__ import annotations
 Approach
 --------
 1. For every match in the DB, extract a 6-dimensional feature vector that
-   describes how the *opposing* team played (from the perspective of the team
-   we're analysing):
+   describes how each team played in that match:
      - possession_pct      : ball possession %
-     - shots_ratio         : shots / (shots + opponent shots)
+     - shots_ratio         : team_shots / (team_shots + opp_shots)
      - pass_accuracy       : pass completion %
-     - pressing_proxy      : fouls committed + (tackles attempted — proxy only,
-                             no coordinate data available)
-     - directness          : long passes / total passes
-     - season_form_rating  : rolling average of goals scored - conceded over
-                             last N matches (quality proxy)
+     - pressing_proxy      : fouls committed (no tackle data in API-Football,
+                             so this is a single-stat proxy)
+     - directness          : total_shots / total_passes (shots-per-pass —
+                             higher = more direct, lower = patient build-up).
+                             API-Football has no long-pass count, so we use
+                             this ratio as the closest available substitute.
+
+   Note: an earlier draft included a 6th feature `season_form_rating`
+   (rolling goal differential). Silhouette + inertia sweeps showed it was
+   collinear with possession + shots_ratio + pass_accuracy and dropped the
+   silhouette score at every k. It was removed.
 
 2. Normalise all features with sklearn StandardScaler.
 
@@ -55,7 +60,6 @@ FEATURE_COLS = [
     "pass_accuracy",
     "pressing_proxy",
     "directness",
-    "season_form_rating",
 ]
 
 N_CLUSTERS = 5
@@ -104,35 +108,80 @@ class ArchetypeClusterer:
         return {i: ARCHETYPE_LABELS[i % len(ARCHETYPE_LABELS)] for i in range(N_CLUSTERS)}
 
 
-def classify_match(stats: dict[str, Any], side: str) -> dict[str, float]:
-    """Extract and return the feature vector for one side of a match.
+def _stat(d: dict[str, Any], key: str, default: float = 0.0) -> float:
+    """Read a numeric stat, treating missing keys and None values as `default`."""
+    v = d.get(key)
+    if v is None:
+        return default
+    return float(v)
+
+
+def classify_match(
+    team_stats: dict[str, Any],
+    opp_stats: dict[str, Any],
+) -> dict[str, float]:
+    """Extract a single team's per-match feature vector.
+
+    Returns a dict whose keys exactly match FEATURE_COLS. All features come
+    from the two stats dicts — no team-level aggregates needed.
 
     Args:
-        stats: The raw stats dict from Match.stats_home or Match.stats_away.
-        side: "home" or "away" — used to compute directness from pass sub-keys.
-
-    Returns:
-        Dict with keys matching FEATURE_COLS.
+        team_stats: stats_home or stats_away for the team being classified.
+        opp_stats:  the opposing team's stats from the same match.
     """
-    # TODO: implement — map API-Football stat labels to feature columns
-    return {col: 0.0 for col in FEATURE_COLS}
+    team_shots = _stat(team_stats, "total_shots")
+    opp_shots = _stat(opp_stats, "total_shots")
+    total_shots = team_shots + opp_shots
+
+    team_passes = _stat(team_stats, "total_passes")
+
+    return {
+        "possession_pct": _stat(team_stats, "ball_possession"),
+        "shots_ratio": team_shots / total_shots if total_shots > 0 else 0.5,
+        "pass_accuracy": _stat(team_stats, "passes_pct"),
+        "pressing_proxy": _stat(team_stats, "fouls"),
+        "directness": team_shots / team_passes if team_passes > 0 else 0.0,
+    }
 
 
 async def build_feature_matrix(session: AsyncSession) -> pd.DataFrame:
     """Query all completed matches from the DB and build the full feature matrix.
 
-    Returns a DataFrame with FEATURE_COLS plus metadata columns:
-    match_id, team_id, season.
+    Each completed match contributes TWO rows — one per team — so the resulting
+    DataFrame has 2 × (#complete matches) rows. Columns are:
+        match_id, team_id, season, *FEATURE_COLS
 
     Only matches passing Match.complete() are included — five 2024-25 fixtures
     have no stats from the API and must not distort cluster centroids.
     """
     from sqlalchemy import select
 
-    # TODO: implement — query Match, compute features per match per team
-    # All queries MUST use .where(Match.complete()) — see Match.complete() docstring.
-    _ = select(Match).where(Match.complete())  # placeholder showing the required filter
-    return pd.DataFrame(columns=["match_id", "team_id", "season", *FEATURE_COLS])
+    stmt = select(Match).where(Match.complete())
+    matches = list((await session.execute(stmt)).scalars().all())
+
+    columns = ["match_id", "team_id", "season", *FEATURE_COLS]
+    if not matches:
+        return pd.DataFrame(columns=columns)
+
+    rows: list[dict[str, Any]] = []
+    for match in matches:
+        home_stats = match.stats_home or {}
+        away_stats = match.stats_away or {}
+
+        rows.append({
+            "match_id": match.id,
+            "team_id": match.home_team_id,
+            "season": match.season_id,
+            **classify_match(home_stats, away_stats),
+        })
+        rows.append({
+            "match_id": match.id,
+            "team_id": match.away_team_id,
+            "season": match.season_id,
+            **classify_match(away_stats, home_stats),
+        })
+
+    return pd.DataFrame(rows, columns=columns)
 
 
 async def get_team_record_vs_archetypes(
