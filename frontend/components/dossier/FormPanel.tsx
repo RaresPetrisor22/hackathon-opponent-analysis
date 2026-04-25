@@ -66,6 +66,13 @@ export function FormPanel({ data }: Props) {
           ))}
         </tbody>
       </table>
+
+      {data.llm_summary && (
+        <div className="border-t border-surface-2 pt-3 space-y-1">
+          <p className="text-[10px] font-mono text-accent uppercase tracking-widest">Analyst Take</p>
+          <p className="text-xs text-white leading-relaxed">{data.llm_summary}</p>
+        </div>
+      )}
     </div>
   );
 }

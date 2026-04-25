@@ -16,6 +16,7 @@ The two stages are kept strictly sequential: Stage 2 never starts before
 Stage 1 completes.
 """
 
+import asyncio
 import json
 from datetime import datetime, timezone
 
@@ -25,8 +26,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.analysis import form, game_state, identity, matchups, players, referee
 from app.config import settings
-from app.llm.client import _get_llm
-from app.llm.prompts import GAMEPLAN_PROMPT
+from app.llm.client import _get_llm, invoke_text
+from app.llm.prompts import (
+    FORM_PROMPT,
+    GAMEPLAN_PROMPT,
+    IDENTITY_PROMPT,
+    MATCHUP_PROMPT,
+    PLAYERS_PROMPT,
+)
 from app.models.team import Team
 from app.schemas.dossier import (
     DossierResponse,
@@ -89,6 +96,52 @@ def _build_parallel_stage(
 
 
 # ---------------------------------------------------------------------------
+# Stage 1.5: Section Enrichment (parallel LLM prose calls)
+# Runs after Stage 1 completes, before Stage 2. Each prompt produces plain
+# text that is attached to the relevant section via model_copy. Failures are
+# swallowed — sections degrade gracefully to empty llm_summary / llm_insight.
+# ---------------------------------------------------------------------------
+
+async def _enrich_sections(
+    opponent_name: str,
+    form_section: FormSection,
+    identity_section: IdentitySection,
+    matchup_section: MatchupSection,
+    players_section: PlayerCardsSection,
+) -> tuple[FormSection, IdentitySection, MatchupSection, PlayerCardsSection]:
+    results = await asyncio.gather(
+        invoke_text(FORM_PROMPT, {
+            "opponent_name": opponent_name,
+            "form_json": form_section.model_dump_json(),
+        }),
+        invoke_text(IDENTITY_PROMPT, {
+            "opponent_name": opponent_name,
+            "identity_json": identity_section.model_dump_json(),
+        }),
+        invoke_text(MATCHUP_PROMPT, {
+            "opponent_name": opponent_name,
+            "fcu_archetype": matchup_section.fcu_archetype_name,
+            "matchup_json": json.dumps([r.model_dump() for r in matchup_section.archetypes]),
+        }),
+        invoke_text(PLAYERS_PROMPT, {
+            "opponent_name": opponent_name,
+            "players_json": players_section.model_dump_json(),
+        }),
+        return_exceptions=True,
+    )
+
+    def _text(r: object) -> str:
+        return r if isinstance(r, str) else ""
+
+    return (
+        form_section.model_copy(update={"llm_summary": _text(results[0])}),
+        identity_section.model_copy(update={"llm_summary": _text(results[1])}),
+        matchup_section.model_copy(update={"llm_insight": _text(results[2])}),
+        players_section.model_copy(update={"llm_summary": _text(results[3])}),
+    )
+
+
+# ---------------------------------------------------------------------------
 # Stage 2: Gameplan Synthesis Agent
 # ---------------------------------------------------------------------------
 
@@ -131,6 +184,16 @@ async def generate_dossier(
     players_section: PlayerCardsSection = sections["players"]
     game_state_section: GameStateSection = sections["game_state"]
     referee_section: RefereeSection = sections["referee"]
+
+    # ---- Stage 1.5: Section Enrichment ------------------------------------
+    (
+        form_section,
+        identity_section,
+        matchup_section,
+        players_section,
+    ) = await _enrich_sections(
+        opponent_name, form_section, identity_section, matchup_section, players_section
+    )
 
     # ---- Stage 2: Gameplan Synthesis Agent --------------------------------
     now = datetime.now(timezone.utc)

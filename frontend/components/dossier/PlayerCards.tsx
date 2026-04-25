@@ -58,6 +58,13 @@ export function PlayerCards({ data }: Props) {
     <div className="rounded border border-surface-2 bg-surface p-5 space-y-5">
       <h2 className="font-semibold text-base">Player Cards</h2>
 
+      {data.llm_summary && (
+        <div className="border-b border-surface-2 pb-4 space-y-1">
+          <p className="text-[10px] font-mono text-accent uppercase tracking-widest">Analyst Take</p>
+          <p className="text-xs text-white leading-relaxed">{data.llm_summary}</p>
+        </div>
+      )}
+
       <div>
         <p className="text-xs text-muted-fg uppercase tracking-widest font-mono mb-3">
           Key Threats
