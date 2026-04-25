@@ -27,7 +27,7 @@ export function IdentityCard({ data }: Props) {
   const stats = data.stats;
 
   return (
-    <div className="rounded border border-surface-2 bg-surface p-5 space-y-4">
+    <div className="rounded-xl border border-surface-2 bg-surface p-5 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-base">Tactical Identity</h2>
         <span className="text-xs font-mono text-muted-fg">

@@ -53,7 +53,7 @@ export function RefereeCard({ data }: Props) {
   const isAssigned = selected === data.referee_name && !!data.referee_name;
 
   return (
-    <div className="rounded border border-surface-2 bg-surface p-5 space-y-4">
+    <div className="rounded-xl border border-surface-2 bg-surface p-5 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-base">Referee</h2>

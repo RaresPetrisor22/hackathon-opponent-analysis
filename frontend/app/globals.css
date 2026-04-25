@@ -8,42 +8,98 @@
 
 @import "shadcn/tailwind.css";
 
-/* Shadcn CSS variable overrides — dark theme only */
+/* Shadcn CSS variable overrides — dark navy theme */
 @layer base {
   .theme {
     --font-sans: var(--font-sans);
   }
   :root {
-    --background: #0a0e1a;
-    --foreground: #f9fafb;
-    --popover: #111827;
-    --popover-foreground: #f9fafb;
-    --card: #111827;
-    --card-foreground: #f9fafb;
-    --primary: #00ff88;
-    --primary-foreground: #0a0e1a;
-    --secondary: #1c2333;
-    --secondary-foreground: #f9fafb;
-    --muted: #1c2333;
-    --muted-foreground: #9ca3af;
-    --accent: #1c2333;
-    --accent-foreground: #f9fafb;
-    --destructive: #ef4444;
-    --border: #1c2333;
-    --input: #1c2333;
-    --ring: #00ff88;
-    --radius: 0.375rem;
+    --background: #070b18;
+    --foreground: #f1f5f9;
+    --popover: #0f1830;
+    --popover-foreground: #f1f5f9;
+    --card: #0f1830;
+    --card-foreground: #f1f5f9;
+    --primary: #60a5fa;
+    --primary-foreground: #070b18;
+    --secondary: #1a2747;
+    --secondary-foreground: #f1f5f9;
+    --muted: #1a2747;
+    --muted-foreground: #94a3b8;
+    --accent: #1a2747;
+    --accent-foreground: #f1f5f9;
+    --destructive: #f87171;
+    --border: #1a2747;
+    --input: #1a2747;
+    --ring: #60a5fa;
+    --radius: 0.5rem;
   }
 }
 
+html,
 body {
-  background-color: #0a0e1a;
-  color: #f9fafb;
+  background-color: #070b18;
+  color: #f1f5f9;
   font-family: "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.005em;
+}
+
+body {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Ambient atmospheric backdrop:
+   - Soft radial glows in two corners (top-left cobalt, bottom-right indigo)
+   - Subtle dot grid for depth */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(900px circle at 10% -10%, rgba(59, 130, 246, 0.10), transparent 55%),
+    radial-gradient(700px circle at 95% 110%, rgba(99, 102, 241, 0.08), transparent 55%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+  background-size: auto, auto, 28px 28px;
+}
+
+main {
+  position: relative;
+  z-index: 1;
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* Soften the default card surface — every `.bg-surface` block gets a faint
+   top-edge highlight so panels read like glass over the navy backdrop. */
+.bg-surface {
+  background-image: linear-gradient(
+    180deg,
+    rgba(96, 165, 250, 0.035) 0%,
+    rgba(15, 24, 48, 0) 70%
+  );
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.04),
+    0 8px 24px -16px rgba(0, 0, 0, 0.6);
+}
+
+/* Headings — slightly tighter tracking for the editorial feel */
+h1,
+h2,
+h3 {
+  letter-spacing: -0.015em;
+}
+
+/* Selection in brand blue */
+::selection {
+  background: rgba(96, 165, 250, 0.3);
+  color: #f1f5f9;
 }
 
 /* Print / PDF export */
@@ -56,6 +112,10 @@ body {
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+
+  body::before {
+    display: none !important;
   }
 
   .no-print {
@@ -73,8 +133,8 @@ body {
     height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
-    background-color: #0a0e1a !important;
-    color: #f9fafb !important;
+    background-color: #070b18 !important;
+    color: #f1f5f9 !important;
   }
 
   main {
@@ -103,15 +163,19 @@ body {
   }
 }
 
-/* Scrollbar */
+/* Scrollbar — blue tinted */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #111827;
+  background: #0f1830;
 }
 ::-webkit-scrollbar-thumb {
-  background: #4b5563;
-  border-radius: 3px;
+  background: #243358;
+  border-radius: 4px;
+  border: 1px solid #0f1830;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3b82f6;
 }

@@ -20,7 +20,8 @@
       "Bash(uv add *)",
       "Bash(powershell -Command \"Get-Process python -ErrorAction SilentlyContinue | Format-Table Id, StartTime, ProcessName\")",
       "Bash(powershell *)",
-      "Bash(echo \"exit=$?\")"
+      "Bash(echo \"exit=$?\")",
+      "Bash(npx next *)"
     ]
   }
 }

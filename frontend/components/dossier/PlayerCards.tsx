@@ -55,7 +55,7 @@ function Card({ player }: { player: PlayerCard }) {
 
 export function PlayerCards({ data }: Props) {
   return (
-    <div className="rounded border border-surface-2 bg-surface p-5 space-y-5">
+    <div className="rounded-xl border border-surface-2 bg-surface p-5 space-y-5">
       <h2 className="font-semibold text-base">Player Cards</h2>
 
       {data.llm_summary && (

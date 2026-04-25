@@ -112,7 +112,7 @@ function RosterTable({ roster }: { roster: PlayerSummary[] }) {
 
 export function GameStatePanel({ data, roster }: Props) {
   return (
-    <div className="rounded border border-surface-2 bg-surface p-5 space-y-4">
+    <div className="rounded-xl border border-surface-2 bg-surface p-5 space-y-4">
       <h2 className="font-semibold text-base">Game State Intelligence</h2>
 
       <div className="space-y-3">

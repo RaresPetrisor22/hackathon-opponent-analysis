@@ -67,16 +67,16 @@ function TacticalRadar({
   return (
     <ResponsiveContainer width="100%" height={230}>
       <RadarChart data={data} margin={{ top: 20, right: 36, bottom: 20, left: 36 }}>
-        <PolarGrid stroke="#1c2333" />
+        <PolarGrid stroke="#1a2747" />
         <PolarAngleAxis
           dataKey="metric"
-          tick={{ fill: "#6b7280", fontSize: 10, fontFamily: "ui-monospace, monospace" }}
+          tick={{ fill: "#94a3b8", fontSize: 10, fontFamily: "ui-monospace, monospace" }}
         />
         <Radar
           name={opponentName}
           dataKey="opponent"
-          stroke="#ef4444"
-          fill="#ef4444"
+          stroke="#f87171"
+          fill="#f87171"
           fillOpacity={0.15}
           strokeWidth={1.5}
         />
@@ -84,9 +84,9 @@ function TacticalRadar({
           <Radar
             name="U Cluj"
             dataKey="fcu"
-            stroke="#00ff88"
-            fill="#00ff88"
-            fillOpacity={0.12}
+            stroke="#60a5fa"
+            fill="#60a5fa"
+            fillOpacity={0.18}
             strokeWidth={2}
           />
         )}
@@ -179,8 +179,8 @@ export function MatchupIntelligence({ data, opponentIdentity, opponentName }: Pr
 
   return (
     <div
-      className="rounded-lg border border-accent/30 bg-surface p-6 space-y-6"
-      style={{ boxShadow: "0 0 56px rgba(0, 255, 136, 0.06)" }}
+      className="rounded-xl border border-accent/30 bg-surface bg-card-gradient p-6 space-y-6"
+      style={{ boxShadow: "0 0 56px rgba(96, 165, 250, 0.10), inset 0 1px 0 0 rgba(255,255,255,0.05)" }}
     >
       {/* Header */}
       <div className="flex items-center justify-between">

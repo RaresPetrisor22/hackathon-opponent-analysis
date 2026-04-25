@@ -91,7 +91,7 @@ function renderMarkdown(text: string): React.ReactNode[] {
                   >
                     <span
                       style={{
-                        color: "#00ff88",
+                        color: "#60a5fa",
                         flexShrink: 0,
                         fontWeight: 700,
                         fontSize: 10,
@@ -146,7 +146,7 @@ function renderInline(text: string): React.ReactNode[] {
     parts.push(
       <strong
         key={match.index}
-        style={{ color: "#00ff88", fontWeight: 600 }}
+        style={{ color: "#60a5fa", fontWeight: 600 }}
       >
         {match[1]}
       </strong>
@@ -248,32 +248,32 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
           width: 60,
           height: 60,
           borderRadius: "50%",
-          background: "linear-gradient(135deg, #00ff88 0%, #00cc6a 100%)",
+          background: "linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)",
           border: "none",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           boxShadow: open
-            ? "0 0 0 4px rgba(0,255,136,.25), 0 8px 32px rgba(0,0,0,.45)"
-            : "0 4px 24px rgba(0,255,136,.35), 0 8px 32px rgba(0,0,0,.4)",
+            ? "0 0 0 4px rgba(96,165,250,.25), 0 8px 32px rgba(0,0,0,.45)"
+            : "0 4px 24px rgba(96,165,250,.35), 0 8px 32px rgba(0,0,0,.4)",
           transition: "all .3s cubic-bezier(.4,0,.2,1)",
           transform: open ? "rotate(45deg)" : "rotate(0deg)",
         }}
       >
         {open ? (
           /* X icon when open */
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0a0e1a" strokeWidth="2.5" strokeLinecap="round">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#070b18" strokeWidth="2.5" strokeLinecap="round">
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         ) : (
           /* Chat icon when closed */
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0a0e1a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#070b18" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            <circle cx="9" cy="10" r="1" fill="#0a0e1a" />
-            <circle cx="12" cy="10" r="1" fill="#0a0e1a" />
-            <circle cx="15" cy="10" r="1" fill="#0a0e1a" />
+            <circle cx="9" cy="10" r="1" fill="#070b18" />
+            <circle cx="12" cy="10" r="1" fill="#070b18" />
+            <circle cx="15" cy="10" r="1" fill="#070b18" />
           </svg>
         )}
       </button>
@@ -291,13 +291,13 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
           maxWidth: "calc(100vw - 32px)",
           height: 560,
           maxHeight: "calc(100vh - 140px)",
-          background: "#111827",
-          border: "1px solid #1c2333",
+          background: "#0f1830",
+          border: "1px solid #1a2747",
           borderRadius: 16,
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
-          boxShadow: "0 20px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(0,255,136,.08)",
+          boxShadow: "0 20px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(96,165,250,.08)",
           opacity: open ? 1 : 0,
           transform: open ? "translateY(0) scale(1)" : "translateY(20px) scale(0.95)",
           pointerEvents: open ? "auto" : "none",
@@ -308,8 +308,8 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
         <div
           style={{
             padding: "16px 20px",
-            borderBottom: "1px solid #1c2333",
-            background: "linear-gradient(135deg, rgba(0,255,136,.06) 0%, transparent 100%)",
+            borderBottom: "1px solid #1a2747",
+            background: "linear-gradient(135deg, rgba(96,165,250,.06) 0%, transparent 100%)",
             display: "flex",
             alignItems: "center",
             gap: 10,
@@ -320,14 +320,14 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
               width: 36,
               height: 36,
               borderRadius: 10,
-              background: "linear-gradient(135deg, #00ff88 0%, #00cc6a 100%)",
+              background: "linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
             }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a0e1a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#070b18" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 20h9" />
               <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
             </svg>
@@ -371,13 +371,13 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
                   width: 56,
                   height: 56,
                   borderRadius: 16,
-                  background: "linear-gradient(135deg, rgba(0,255,136,.12) 0%, rgba(0,255,136,.04) 100%)",
+                  background: "linear-gradient(135deg, rgba(96,165,250,.12) 0%, rgba(96,165,250,.04) 100%)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00ff88" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 </svg>
               </div>
@@ -404,23 +404,23 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
                       inputRef.current?.focus();
                     }}
                     style={{
-                      background: "rgba(0,255,136,.08)",
-                      border: "1px solid rgba(0,255,136,.15)",
+                      background: "rgba(96,165,250,.08)",
+                      border: "1px solid rgba(96,165,250,.15)",
                       borderRadius: 20,
                       padding: "5px 12px",
-                      color: "#00ff88",
+                      color: "#60a5fa",
                       fontSize: 11,
                       cursor: "pointer",
                       fontFamily: "'Inter', system-ui, sans-serif",
                       transition: "all .2s",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "rgba(0,255,136,.15)";
-                      e.currentTarget.style.borderColor = "rgba(0,255,136,.3)";
+                      e.currentTarget.style.background = "rgba(96,165,250,.15)";
+                      e.currentTarget.style.borderColor = "rgba(96,165,250,.3)";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "rgba(0,255,136,.08)";
-                      e.currentTarget.style.borderColor = "rgba(0,255,136,.15)";
+                      e.currentTarget.style.background = "rgba(96,165,250,.08)";
+                      e.currentTarget.style.borderColor = "rgba(96,165,250,.15)";
                     }}
                   >
                     {suggestion}
@@ -448,7 +448,7 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
                     width: 28,
                     height: 28,
                     borderRadius: 8,
-                    background: "linear-gradient(135deg, #00ff88 0%, #00cc6a 100%)",
+                    background: "linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -456,7 +456,7 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
                     marginBottom: 2,
                   }}
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0a0e1a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#070b18" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 20h9" />
                     <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                   </svg>
@@ -473,16 +473,16 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
                       : "4px 14px 14px 14px",
                   background:
                     msg.role === "user"
-                      ? "linear-gradient(135deg, #00ff88 0%, #00cc6a 100%)"
-                      : "#1c2333",
-                  color: msg.role === "user" ? "#0a0e1a" : "#e5e7eb",
+                      ? "linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)"
+                      : "#1a2747",
+                  color: msg.role === "user" ? "#070b18" : "#e5e7eb",
                   fontSize: 13,
                   lineHeight: 1.55,
                   fontWeight: msg.role === "user" ? 500 : 400,
                   wordBreak: "break-word",
                   ...(msg.role === "assistant"
                     ? {
-                        borderLeft: "2px solid rgba(0,255,136,.25)",
+                        borderLeft: "2px solid rgba(96,165,250,.25)",
                       }
                     : {}),
                 }}
@@ -502,7 +502,7 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
                   width: 28,
                   height: 28,
                   borderRadius: 8,
-                  background: "linear-gradient(135deg, #00ff88 0%, #00cc6a 100%)",
+                  background: "linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -510,7 +510,7 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
                   marginBottom: 2,
                 }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0a0e1a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#070b18" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 20h9" />
                   <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                 </svg>
@@ -519,8 +519,8 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
                 style={{
                   padding: "12px 18px",
                   borderRadius: "4px 14px 14px 14px",
-                  background: "#1c2333",
-                  borderLeft: "2px solid rgba(0,255,136,.25)",
+                  background: "#1a2747",
+                  borderLeft: "2px solid rgba(96,165,250,.25)",
                   display: "flex",
                   gap: 5,
                   alignItems: "center",
@@ -534,7 +534,7 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
                       width: 6,
                       height: 6,
                       borderRadius: "50%",
-                      background: "#00ff88",
+                      background: "#60a5fa",
                       display: "inline-block",
                       animation: `chatBounce 1.2s ease-in-out infinite`,
                       animationDelay: `${j * 0.15}s`,
@@ -550,7 +550,7 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
         <div
           style={{
             padding: "12px 16px",
-            borderTop: "1px solid #1c2333",
+            borderTop: "1px solid #1a2747",
             display: "flex",
             gap: 8,
             alignItems: "center",
@@ -569,8 +569,8 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
             disabled={loading}
             style={{
               flex: 1,
-              background: "#0a0e1a",
-              border: "1px solid #1c2333",
+              background: "#070b18",
+              border: "1px solid #1a2747",
               borderRadius: 10,
               padding: "10px 14px",
               color: "#f9fafb",
@@ -579,8 +579,8 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
               fontFamily: "'Inter', system-ui, sans-serif",
               transition: "border-color .2s",
             }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "#00ff88")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "#1c2333")}
+            onFocus={(e) => (e.currentTarget.style.borderColor = "#60a5fa")}
+            onBlur={(e) => (e.currentTarget.style.borderColor = "#1a2747")}
           />
           <button
             id="chat-send"
@@ -594,8 +594,8 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
               border: "none",
               background:
                 loading || !input.trim()
-                  ? "#1c2333"
-                  : "linear-gradient(135deg, #00ff88 0%, #00cc6a 100%)",
+                  ? "#1a2747"
+                  : "linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)",
               cursor: loading || !input.trim() ? "default" : "pointer",
               display: "flex",
               alignItems: "center",
@@ -609,7 +609,7 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
               height="18"
               viewBox="0 0 24 24"
               fill="none"
-              stroke={loading || !input.trim() ? "#4b5563" : "#0a0e1a"}
+              stroke={loading || !input.trim() ? "#4b5563" : "#070b18"}
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -641,12 +641,12 @@ export function ChatWidget({ dossier }: ChatWidgetProps) {
         }
         #chat-panel::-webkit-scrollbar-thumb,
         #chat-panel *::-webkit-scrollbar-thumb {
-          background: rgba(0,255,136,.15);
+          background: rgba(96,165,250,.15);
           border-radius: 4px;
         }
         #chat-panel::-webkit-scrollbar-thumb:hover,
         #chat-panel *::-webkit-scrollbar-thumb:hover {
-          background: rgba(0,255,136,.3);
+          background: rgba(96,165,250,.3);
         }
       `}</style>
     </>

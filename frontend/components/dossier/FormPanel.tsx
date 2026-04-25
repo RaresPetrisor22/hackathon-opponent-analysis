@@ -12,7 +12,7 @@ const RESULT_COLORS: Record<string, string> = {
 
 export function FormPanel({ data }: Props) {
   return (
-    <div className="rounded border border-surface-2 bg-surface p-5 space-y-4">
+    <div className="rounded-xl border border-surface-2 bg-surface p-5 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-base">Form</h2>
         <div className="flex gap-1">
