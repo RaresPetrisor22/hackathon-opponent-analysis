@@ -11,9 +11,15 @@ from langchain_core.prompts import ChatPromptTemplate
 
 _SYSTEM = (
     "You are an experienced football tactical analyst producing pre-match scouting "
-    "reports for professional coaching staff. Your output is factual, precise, and "
-    "terse. You do not use marketing language, hedging, or filler phrases. "
-    "You never fabricate statistics."
+    "reports for the head coach of FC Universitatea Cluj. Your output is factual, "
+    "precise, and terse — written for a professional dressing-room briefing, not a "
+    "match preview article. Hard rules:\n"
+    "  * Never invent statistics. Only reference numbers present in the supplied data.\n"
+    "  * No marketing language ('dynamic', 'free-flowing', 'in-form'), no hedging "
+    "    ('seems to', 'might be'), no filler ('it is worth noting that').\n"
+    "  * Use specific numbers when they make the point (e.g. '56% possession over "
+    "    the last 10' beats 'they keep the ball').\n"
+    "  * No emoji. No exclamation marks. No questions."
 )
 
 # ---------------------------------------------------------------------------
@@ -25,10 +31,14 @@ FORM_PROMPT = ChatPromptTemplate.from_messages(
         ("system", _SYSTEM),
         (
             "human",
-            # TODO: refine — specify output format, add few-shot examples, tune tone
-            "Summarise the following recent-form data for {opponent_name} in 2-3 sentences.\n"
-            "Highlight the most significant trend (e.g. unbeaten run, defensive fragility, "
-            "home/away split).\n\nData:\n{form_json}",
+            "Recent-form summary for {opponent_name}.\n\n"
+            "Write exactly two sentences:\n"
+            "  1. State the W/D/L record over the last 5 and the form_string verbatim.\n"
+            "  2. Name the single most actionable trend — one of: an unbeaten or "
+            "winless run, a defensive collapse, a goalscoring drought, or a clear "
+            "home/away split. Cite the specific number that proves it.\n"
+            "Do not list every fixture. Do not editorialise.\n\n"
+            "Data:\n{form_json}",
         ),
     ]
 )
@@ -42,11 +52,18 @@ IDENTITY_PROMPT = ChatPromptTemplate.from_messages(
         ("system", _SYSTEM),
         (
             "human",
-            # TODO: refine — avoid generic phrases, enforce paragraph length
-            "Given the following seasonal average statistics for {opponent_name}, write a "
-            "single concise paragraph describing their tactical identity: how they build up, "
-            "press, and defend. Avoid generic phrases like 'well-organised' or 'dynamic'. "
-            "Be specific to the numbers.\n\nData:\n{identity_json}",
+            "Tactical identity paragraph for {opponent_name}.\n\n"
+            "Write one paragraph of 3-4 sentences covering, in order:\n"
+            "  1. Build-up and possession profile — anchor in avg_possession and "
+            "avg_pass_accuracy.\n"
+            "  2. Attacking output — anchor in avg_shots and avg_shots_on_target "
+            "(and the on-target ratio if it is unusual).\n"
+            "  3. Defensive / pressing posture — anchor in pressing_intensity and "
+            "avg_fouls; mention preferred_formation only if it shapes the answer.\n"
+            "Banned phrases: 'well-organised', 'dynamic', 'solid', 'compact unit', "
+            "'high-quality side'. Replace any urge to use them with the concrete "
+            "stat that drives the observation.\n\n"
+            "Data:\n{identity_json}",
         ),
     ]
 )
@@ -60,10 +77,15 @@ MATCHUP_PROMPT = ChatPromptTemplate.from_messages(
         ("system", _SYSTEM),
         (
             "human",
-            # TODO: refine — focus output on exploitable patterns, add archetype label context
-            "Based on the archetype analysis below, explain in 2-3 sentences what tactical "
-            "challenge {opponent_name} poses for a team classified as '{fcu_archetype}'. "
-            "Focus on the most exploitable patterns visible in the record data.\n\n"
+            "Archetype matchup readout. {opponent_name} is being played by FC "
+            "Universitatea Cluj, who are classified as the '{fcu_archetype}' "
+            "archetype.\n\n"
+            "Write 2-3 sentences answering only this question: against opponents "
+            "of {opponent_name}'s archetype, where does the '{fcu_archetype}' "
+            "profile historically win or lose? Anchor every claim in the W/D/L "
+            "and goals_for / goals_against numbers from the supplied records.\n"
+            "Do not restate the archetype description. Do not give generic advice. "
+            "Pick the one matchup pattern most worth exploiting and name it.\n\n"
             "Archetype records:\n{matchup_json}",
         ),
     ]
@@ -78,10 +100,14 @@ PLAYERS_PROMPT = ChatPromptTemplate.from_messages(
         ("system", _SYSTEM),
         (
             "human",
-            # TODO: refine — one sentence per card, no raw number repetition
-            "Given the player stat cards below for {opponent_name}, identify the single most "
-            "dangerous attacking threat and the most exploitable defensive weak spot. "
-            "Write one sentence each. Do not repeat the raw numbers — synthesise them.\n\n"
+            "From the {opponent_name} player cards below, produce exactly two lines:\n"
+            "  THREAT: one sentence naming the single most dangerous attacker and "
+            "the specific way they hurt opponents (e.g. 'left-channel cut-ins' or "
+            "'late runs into the box'). Synthesise — do not recite the goals/assists "
+            "tally.\n"
+            "  WEAKNESS: one sentence naming the single most exploitable defender "
+            "and the recurring failure mode (e.g. 'over-commits in 1v1 duels', "
+            "'foul-prone under pressure'). Again, synthesise — no raw numbers.\n\n"
             "Player cards:\n{players_json}",
         ),
     ]
@@ -96,16 +122,40 @@ GAMEPLAN_PROMPT = ChatPromptTemplate.from_messages(
         ("system", _SYSTEM),
         (
             "human",
-            # TODO: refine — add few-shot examples, constrain paragraph length,
-            #       enforce key_actions as imperative verb phrases
-            "FC Universitatea Cluj will face {opponent_name} on {match_date}.\n\n"
-            "Below is the structured analysis from all dossier sections in JSON format.\n"
-            "Write a tactical gameplan with:\n"
-            "1. A one-line headline (imperative).\n"
-            "2. A 3-4 paragraph narrative: key threat to neutralise, pressing/defensive "
-            "structure, set-piece awareness, substitution window to exploit.\n"
-            "3. A list of 4-6 specific coaching points for the whiteboard session.\n\n"
-            "Tone: direct, professional, no hedging. Written for a head coach.\n\n"
+            "FC Universitatea Cluj face {opponent_name} on {match_date}. The full "
+            "structured dossier is below. Produce a tactical gameplan for the "
+            "head coach.\n\n"
+            "Output requirements:\n\n"
+            "1. headline — one imperative sentence, max 12 words. It must name "
+            "the single decisive theme of the match. Examples of acceptable form:\n"
+            "     - 'Suffocate the double pivot, force them wide'\n"
+            "     - 'Win the second ball, attack the right-back's channel'\n"
+            "   Examples of unacceptable form:\n"
+            "     - 'A big match awaits us in Cluj' (not imperative, no theme)\n"
+            "     - 'We need to be ready' (vague, no tactical content)\n\n"
+            "2. body — 3 paragraphs, each 3-5 sentences. No more, no fewer. "
+            "Order strictly:\n"
+            "   Paragraph 1: the chief threat (player or pattern) and the "
+            "concrete way to neutralise it. Reference matchup-archetype evidence "
+            "or game-state tendencies where relevant.\n"
+            "   Paragraph 2: our pressing and defensive shape against their "
+            "build-up. Anchor in their identity numbers (possession, pass %, "
+            "preferred formation).\n"
+            "   Paragraph 3: in-game levers — set-piece risk, the score-state "
+            "in which they are weakest, and the substitution window most worth "
+            "exploiting. End the paragraph with the referee profile only if it "
+            "changes our duel or set-piece approach.\n\n"
+            "3. key_actions — 4 to 6 bullets. Each MUST:\n"
+            "   * begin with an imperative verb (Press, Force, Cover, Attack, "
+            "Double up, Deny, Track, Compress, Recycle...)\n"
+            "   * be a single line, no sub-clauses\n"
+            "   * be specific enough that a player or unit can execute it\n"
+            "   Acceptable: 'Force their right-back inside onto his weaker foot.'\n"
+            "   Acceptable: 'Track the no.10's late runs from midfield to box.'\n"
+            "   Unacceptable: 'Be focused and aggressive.' (not specific)\n"
+            "   Unacceptable: 'Their striker is dangerous.' (not imperative)\n\n"
+            "Hard constraints: no preamble, no closing summary, no quoting of "
+            "raw JSON, no inventing players or stats not present in the data.\n\n"
             "Dossier data:\n{full_dossier_json}",
         ),
     ]

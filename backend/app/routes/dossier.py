@@ -18,6 +18,8 @@ async def get_dossier(
     """Generate and return the full pre-match dossier for the given opponent team."""
     try:
         return await generate_dossier(team_id, session)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
     except NotImplementedError:
         raise HTTPException(status_code=501, detail="Dossier generation not yet implemented.")
     except Exception as exc:
