@@ -12,6 +12,7 @@ from app.schemas.dossier import (
     IdentitySection,
     MatchFormEntry,
     MatchupSection,
+    MediaIntelligence,
     PlayerCard,
     PlayerCardsSection,
     RefereeSection,
@@ -263,5 +264,6 @@ def build_mock_dossier(team_id: int, team_name: str = "CFR Cluj") -> DossierResp
         players=players,
         game_state=game_state,
         referee=referee,
+        media_intel=MediaIntelligence(chunks=[]),
         gameplan=gameplan,
     )

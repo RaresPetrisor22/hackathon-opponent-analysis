@@ -115,6 +115,12 @@ class RefereeSection(BaseModel):
     notes: str
 
 
+# --- Media Intelligence (RAG) ---
+
+class MediaIntelligence(BaseModel):
+    chunks: list[str]  # top-K press-report excerpts for this team, from Pinecone
+
+
 # --- Gameplan Narrative (LLM) ---
 
 class GameplanNarrative(BaseModel):
@@ -136,4 +142,5 @@ class DossierResponse(BaseModel):
     players: PlayerCardsSection
     game_state: GameStateSection
     referee: RefereeSection
+    media_intel: MediaIntelligence
     gameplan: GameplanNarrative
