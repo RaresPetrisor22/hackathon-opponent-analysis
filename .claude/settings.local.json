@@ -11,7 +11,12 @@
       "Bash(python -c ' *)",
       "Bash(git checkout *)",
       "Bash(git merge *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(python3 -u -c ' *)",
+      "Bash(iconv -f utf-8 -t ascii//TRANSLIT)",
+      "Bash(npm install *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
