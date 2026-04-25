@@ -137,6 +137,11 @@ class ApiFootballClient:
 # Parsing helpers (pure functions — no I/O, easy to unit-test)
 # ---------------------------------------------------------------------------
 
+# Keys API-Football returns but that are unusable for SuperLiga (always None).
+# Dropped during normalisation to keep stats dicts clean.
+_DROPPED_STAT_KEYS = frozenset({"goals_prevented"})
+
+
 def normalize_statistics(raw_stats: list[dict[str, Any]]) -> dict[str, float | int | None]:
     """Convert API-Football's list-of-dicts stats into a flat snake_case dict.
 
@@ -144,7 +149,8 @@ def normalize_statistics(raw_stats: list[dict[str, Any]]) -> dict[str, float | i
     Output : {"ball_possession": 55.0, ...}
 
     String percentages are stripped and cast to float. Numeric strings are
-    cast to int or float. None / missing values stay as None.
+    cast to int or float. None / missing values stay as None. Keys in
+    _DROPPED_STAT_KEYS are excluded (never populated for SuperLiga).
     """
     out: dict[str, float | int | None] = {}
     for entry in raw_stats:
@@ -152,6 +158,8 @@ def normalize_statistics(raw_stats: list[dict[str, Any]]) -> dict[str, float | i
         if not raw_type:
             continue
         key = raw_type.strip().lower().replace(" ", "_").replace("%", "pct").replace("__", "_")
+        if key in _DROPPED_STAT_KEYS:
+            continue
         value = entry.get("value")
         out[key] = _coerce_stat_value(value)
     return out
