@@ -86,6 +86,7 @@ export function RefereeCard({ data }: Props) {
           position="popper"
           side="bottom"
           sideOffset={4}
+          avoidCollisions={false}
           className="
             bg-[#0d1424] border border-surface-2
             text-white rounded-md shadow-xl
