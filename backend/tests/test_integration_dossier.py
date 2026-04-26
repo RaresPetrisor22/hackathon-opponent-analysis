@@ -74,7 +74,7 @@ TEAM_PROFILES = [
                          "on_goal": 3, "outside": 7, "win_bias": -0.1}),
     (106, "LongShot_B", {"possession": 52, "pass_pct": 74, "shots": 13,
                          "on_goal": 3, "outside": 8, "win_bias": 0.0}),
-    # Direct & Struggling (low possession, low pass acc, lose-leaning)
+    # Direct & Reactive (low possession, low pass acc, lose-leaning)
     (107, "Strug_A", {"possession": 45, "pass_pct": 70, "shots": 9,
                       "on_goal": 3, "outside": 5, "win_bias": -1.4}),
     (108, "Strug_B", {"possession": 44, "pass_pct": 69, "shots": 8,

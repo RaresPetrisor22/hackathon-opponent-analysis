@@ -26,7 +26,7 @@ Each match's home_archetype_id / away_archetype_id is set to the archetype of
 the home/away team — i.e. archetypes are a TEAM property that propagates to
 every match they play. This keeps the W/D/L breakdown in
 `get_team_record_vs_archetypes` consistent: when you ask "how does X do vs
-Direct & Struggling teams?" the answer is computed over X's matches against
+Direct & Reactive teams?" the answer is computed over X's matches against
 every team in that archetype.
 """
 
@@ -66,7 +66,7 @@ ARCHETYPE_LABELS = [
     "Dominant Possession Elite",
     "Compact Counter",
     "Long-Range Specialists",
-    "Direct & Struggling",
+    "Direct & Reactive",
 ]
 
 ARCHETYPE_DESCRIPTIONS: dict[str, str] = {
@@ -84,7 +84,7 @@ ARCHETYPE_DESCRIPTIONS: dict[str, str] = {
         "Elevated long-shot ratio with low shot quality. Outshoots opponents "
         "from distance but converts poorly — speculative attacking pattern."
     ),
-    "Direct & Struggling": (
+    "Direct & Reactive": (
         "Low possession, low pass accuracy, negative goal differential. "
         "Bypasses midfield with direct play but lacks the quality to "
         "convert chances. Lower-table profile."
@@ -278,7 +278,7 @@ class ArchetypeClusterer:
 
         Heuristic priority:
           1. Highest goal_diff + highest pass_accuracy -> Dominant Possession Elite
-          2. Lowest goal_diff + low pass_accuracy      -> Direct & Struggling
+          2. Lowest goal_diff + low pass_accuracy      -> Direct & Reactive
           3. Highest long_shot_ratio (remaining)       -> Long-Range Specialists
           4. Whatever remains                          -> Compact Counter
         """

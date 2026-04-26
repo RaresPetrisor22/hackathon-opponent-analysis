@@ -136,7 +136,7 @@ def build_mock_dossier(team_id: int, team_name: str = "CFR Cluj") -> DossierResp
             ),
             ArchetypeRecord(
                 archetype_id=4,
-                archetype_name="Direct & Struggling",
+                archetype_name="Direct & Reactive",
                 archetype_description=(
                     "Low possession, low pass accuracy, negative goal differential. "
                     "Bypasses midfield with direct play but lacks the quality to "
