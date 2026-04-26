@@ -37,3 +37,4 @@ backend/app/ingestion/raw/**/*.json
 # OS
 .DS_Store
 Thumbs.db
+frontend/tsconfig.tsbuildinfo
