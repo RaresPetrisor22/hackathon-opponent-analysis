@@ -6,7 +6,7 @@ interface Props {
 
 export function GameplanNarrative({ data }: Props) {
   return (
-    <div className="rounded border border-accent/20 bg-surface p-6 space-y-5">
+    <div className="rounded-xl border border-accent/25 bg-surface bg-card-gradient shadow-glow p-6 space-y-5">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-mono text-accent uppercase tracking-widest mb-2">

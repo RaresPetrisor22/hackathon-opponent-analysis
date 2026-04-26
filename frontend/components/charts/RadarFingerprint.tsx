@@ -20,22 +20,22 @@ interface Props {
   height?: number;
 }
 
-export function RadarFingerprint({ data, color = "#00ff88", height = 280 }: Props) {
+export function RadarFingerprint({ data, color = "#60a5fa", height = 280 }: Props) {
   return (
     <ResponsiveContainer width="100%" height={height}>
       <RadarChart data={data}>
-        <PolarGrid stroke="#1c2333" />
+        <PolarGrid stroke="#1a2747" />
         <PolarAngleAxis
           dataKey="metric"
-          tick={{ fill: "#9ca3af", fontSize: 11, fontFamily: "JetBrains Mono" }}
+          tick={{ fill: "#94a3b8", fontSize: 11, fontFamily: "JetBrains Mono" }}
         />
         <Radar
           name="Team"
           dataKey="value"
           stroke={color}
           fill={color}
-          fillOpacity={0.15}
-          strokeWidth={1.5}
+          fillOpacity={0.18}
+          strokeWidth={1.75}
         />
       </RadarChart>
     </ResponsiveContainer>

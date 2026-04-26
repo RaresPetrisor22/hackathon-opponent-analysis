@@ -17,11 +17,21 @@ interface Props {
   opponentName: string;
 }
 
-function WinRateBar({ wins, draws, losses }: { wins: number; draws: number; losses: number }) {
+function WinRateBar({
+  wins,
+  draws,
+  losses,
+  winColor = "bg-accent",
+}: {
+  wins: number;
+  draws: number;
+  losses: number;
+  winColor?: string;
+}) {
   const total = wins + draws + losses || 1;
   return (
     <div className="flex h-1.5 rounded overflow-hidden gap-px w-full">
-      <div className="bg-accent" style={{ width: `${(wins / total) * 100}%` }} />
+      <div className={winColor} style={{ width: `${(wins / total) * 100}%` }} />
       <div className="bg-warning" style={{ width: `${(draws / total) * 100}%` }} />
       <div className="bg-danger" style={{ width: `${(losses / total) * 100}%` }} />
     </div>
@@ -67,16 +77,16 @@ function TacticalRadar({
   return (
     <ResponsiveContainer width="100%" height={230}>
       <RadarChart data={data} margin={{ top: 20, right: 36, bottom: 20, left: 36 }}>
-        <PolarGrid stroke="#1c2333" />
+        <PolarGrid stroke="#1a2747" />
         <PolarAngleAxis
           dataKey="metric"
-          tick={{ fill: "#6b7280", fontSize: 10, fontFamily: "ui-monospace, monospace" }}
+          tick={{ fill: "#94a3b8", fontSize: 10, fontFamily: "ui-monospace, monospace" }}
         />
         <Radar
           name={opponentName}
           dataKey="opponent"
-          stroke="#ef4444"
-          fill="#ef4444"
+          stroke="#f87171"
+          fill="#f87171"
           fillOpacity={0.15}
           strokeWidth={1.5}
         />
@@ -84,9 +94,9 @@ function TacticalRadar({
           <Radar
             name="U Cluj"
             dataKey="fcu"
-            stroke="#00ff88"
-            fill="#00ff88"
-            fillOpacity={0.12}
+            stroke="#60a5fa"
+            fill="#60a5fa"
+            fillOpacity={0.18}
             strokeWidth={2}
           />
         )}
@@ -179,8 +189,8 @@ export function MatchupIntelligence({ data, opponentIdentity, opponentName }: Pr
 
   return (
     <div
-      className="rounded-lg border border-accent/30 bg-surface p-6 space-y-6"
-      style={{ boxShadow: "0 0 56px rgba(0, 255, 136, 0.06)" }}
+      className="rounded-xl border border-accent/30 bg-surface bg-card-gradient p-6 space-y-6"
+      style={{ boxShadow: "0 0 56px rgba(96, 165, 250, 0.10), inset 0 1px 0 0 rgba(255,255,255,0.05)" }}
     >
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -195,22 +205,36 @@ export function MatchupIntelligence({ data, opponentIdentity, opponentName }: Pr
 
       {/* Hero grid: winning condition + radar */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        {/* Winning Condition — 3 cols */}
-        <div className="lg:col-span-3 rounded border border-accent/40 bg-accent/5 p-6 space-y-5">
-          <p className="text-[10px] font-mono text-accent uppercase tracking-widest">
-            Recommended Approach
-          </p>
+        {/* Winning Condition — 3 cols — CORE FEATURE */}
+        <div
+          className="lg:col-span-3 relative rounded-xl border border-accent/60 p-6 space-y-5 overflow-hidden"
+          style={{
+            background:
+              "radial-gradient(120% 140% at 0% 0%, rgba(96,165,250,0.18) 0%, rgba(74,222,128,0.06) 35%, rgba(15,24,48,0) 70%), linear-gradient(180deg, rgba(96,165,250,0.08) 0%, rgba(15,24,48,0.4) 100%)",
+            boxShadow:
+              "0 0 0 1px rgba(96,165,250,0.15), 0 0 48px -8px rgba(96,165,250,0.35), inset 0 1px 0 0 rgba(255,255,255,0.06)",
+          }}
+        >
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex size-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
+              <span className="relative inline-flex size-2 rounded-full bg-accent" />
+            </span>
+            <p className="text-[10px] font-mono text-accent uppercase tracking-widest">
+              Recommended Approach
+            </p>
+          </div>
 
           <div className="flex items-start gap-6">
             {/* Big percentage */}
             <div className="shrink-0">
-              <p className="font-mono text-8xl font-bold leading-none text-accent">
+              <p className="font-mono text-8xl font-bold leading-none text-green-400 [text-shadow:0_0_24px_rgba(74,222,128,0.35)]">
                 {bestLossRate}%
               </p>
               <p className="font-mono text-xs text-muted-fg mt-2">{opponentName} loss rate</p>
             </div>
 
-            <div className="w-px self-stretch bg-accent/20" />
+            <div className="w-px self-stretch bg-gradient-to-b from-transparent via-accent/40 to-transparent" />
 
             {/* Tactical recommendation */}
             <div className="space-y-2 flex-1 min-w-0">
@@ -243,6 +267,7 @@ export function MatchupIntelligence({ data, opponentIdentity, opponentName }: Pr
                 wins={bestMatchup.wins}
                 draws={bestMatchup.draws}
                 losses={bestMatchup.losses}
+                winColor="bg-green-400"
               />
               <p className="font-mono text-xs text-muted-fg">
                 {bestMatchup.wins}W · {bestMatchup.draws}D · {bestMatchup.losses}L across{" "}

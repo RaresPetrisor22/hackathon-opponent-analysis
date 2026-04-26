@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 const TARGET_ID = "dossier-content";
-const BG = "#0a0e1a";
+const BG = "#070b18";
 
 export function PrintButton() {
   const [busy, setBusy] = useState(false);
