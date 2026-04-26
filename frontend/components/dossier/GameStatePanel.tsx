@@ -13,7 +13,12 @@ const STATE_COLORS: Record<string, string> = {
 export function GameStatePanel({ data }: Props) {
   return (
     <div className="rounded-xl border border-surface-2 bg-surface p-5 space-y-4">
-      <h2 className="font-semibold text-base">Game State Intelligence</h2>
+      <div className="flex items-center gap-2.5">
+        <span className="h-3.5 w-[3px] bg-accent rounded-sm" />
+        <h2 className="font-mono text-xs font-semibold text-white uppercase tracking-[0.22em]">
+          Game State Intelligence
+        </h2>
+      </div>
 
       <div className="space-y-3">
         {data.records.map((r) => (

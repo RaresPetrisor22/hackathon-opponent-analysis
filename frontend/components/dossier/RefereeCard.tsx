@@ -56,7 +56,12 @@ export function RefereeCard({ data }: Props) {
     <div className="rounded-xl border border-surface-2 bg-surface p-5 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-base">Referee</h2>
+        <div className="flex items-center gap-2.5">
+          <span className="h-3.5 w-[3px] bg-accent rounded-sm" />
+          <h2 className="font-mono text-xs font-semibold text-white uppercase tracking-[0.22em]">
+            Referee
+          </h2>
+        </div>
         {isAssigned && (
           <span className="text-[10px] font-mono text-accent uppercase tracking-widest border border-accent/30 rounded px-1.5 py-0.5">
             assigned

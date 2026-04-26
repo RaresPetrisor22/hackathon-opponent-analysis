@@ -20,27 +20,36 @@ export default async function DossierPage({ params }: Props) {
 
   return (
     <div id="dossier-content" className="max-w-7xl mx-auto px-4 py-8 space-y-6">
-      {/* Page header */}
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <p className="text-[10px] font-mono text-accent uppercase tracking-widest">
-            Pre-Match Dossier · FC Universitatea Cluj
-          </p>
+      {/* Page header — editorial masthead */}
+      <div className="flex items-end justify-between gap-6 border-b border-surface-2 pb-6">
+        <div className="space-y-3 min-w-0">
           <div className="flex items-center gap-3">
+            <span className="h-px w-10 bg-accent" />
+            <p className="text-[10px] font-mono text-accent uppercase tracking-[0.3em]">
+              Pre-Match Dossier
+            </p>
+          </div>
+          <div className="flex items-end gap-5">
             {dossier.opponent_logo_url && (
               <Image
                 src={dossier.opponent_logo_url}
                 alt={dossier.opponent_name}
-                width={48}
-                height={48}
-                className="object-contain"
+                width={72}
+                height={72}
+                className="object-contain shrink-0"
               />
             )}
-            <h1 className="text-3xl font-bold text-white">{dossier.opponent_name}</h1>
+            <h1 className="font-bold text-white uppercase tracking-tight leading-[0.9] text-5xl sm:text-6xl break-words">
+              {dossier.opponent_name}
+            </h1>
           </div>
-          <p className="text-muted-fg text-xs font-mono">
-            Generated {new Date(dossier.generated_at).toLocaleString()}
-          </p>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-mono text-muted-fg uppercase tracking-[0.18em]">
+            <span className="text-white/70">FC Universitatea Cluj</span>
+            <span className="text-surface-2">/</span>
+            <span>2024–25 Season</span>
+            <span className="text-surface-2">/</span>
+            <span>Generated {new Date(dossier.generated_at).toLocaleDateString()}</span>
+          </div>
         </div>
         <PrintButton />
       </div>
@@ -50,13 +59,16 @@ export default async function DossierPage({ params }: Props) {
         <MatchupIntelligence data={dossier.matchups} opponentIdentity={dossier.identity.stats} opponentName={dossier.opponent_name} />
       </section>
 
-      {/* Supporting analysis divider */}
+      {/* Supporting analysis divider — editorial rule */}
       <div className="flex items-center gap-4 pt-2">
-        <div className="h-px flex-1 bg-surface-2" />
-        <span className="text-[10px] font-mono text-muted-fg uppercase tracking-widest">
-          Supporting Analysis
-        </span>
-        <div className="h-px flex-1 bg-surface-2" />
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-surface-2 to-surface-2" />
+        <div className="flex items-center gap-2 px-2 py-1 border border-surface-2 rounded-sm bg-surface/40">
+          <span className="size-1 rounded-full bg-accent" />
+          <span className="text-[10px] font-mono text-muted-fg uppercase tracking-[0.3em]">
+            Supporting Analysis
+          </span>
+        </div>
+        <div className="h-px flex-1 bg-gradient-to-l from-transparent via-surface-2 to-surface-2" />
       </div>
 
       {/* Main grid */}
