@@ -56,7 +56,7 @@ ARCHETYPE_COLOUR = {
     "Dominant Possession Elite": "#00ff88",
     "Compact Counter": "#5da5ff",
     "Long-Range Specialists": "#ffb84d",
-    "Direct & Struggling": "#ff5d73",
+    "Direct & Reactive": "#ff5d73",
 }
 DEFAULT_COLOUR = "#c084fc"
 BG = "#0a0e1a"
